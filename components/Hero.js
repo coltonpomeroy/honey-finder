@@ -1,6 +1,7 @@
 import Image from "next/image";
 import TestimonialsAvatars from "./TestimonialsAvatars";
 import config from "@/config";
+import hero from "@/app/hero.webp";
 
 const Hero = () => {
   return (
@@ -22,11 +23,10 @@ const Hero = () => {
         </a>
 
         <h1 className="font-extrabold text-4xl lg:text-6xl tracking-tight md:-mb-4">
-          Ship your startup in days, not weeks
+        {`Find it before she says, 'It’s right there!'`}
         </h1>
         <p className="text-lg opacity-80 leading-relaxed">
-          The NextJS boilerplate with all you need to build your SaaS, AI tool,
-          or any other web app. From idea to production in 5 minutes.
+        {"From tools to snacks and everything in between, HoneyFinder helps you locate your stuff without the hunt—or the 'helpful' reminders."}
         </p>
         <button className="btn btn-primary btn-wide">
           Get {config.appName}
@@ -36,7 +36,7 @@ const Hero = () => {
       </div>
       <div className="lg:w-full">
         <Image
-          src="https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3540&q=80"
+          src={hero}
           alt="Product Demo"
           className="w-full"
           priority={true}
