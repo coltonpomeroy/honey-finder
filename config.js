@@ -5,9 +5,9 @@ const config = {
   appName: "HoneyFinder",
   // REQUIRED: a short description of your app for SEO tags (can be overwritten)
   appDescription:
-    "The NextJS boilerplate with all you need to build your SaaS, AI tool, or any other web app.",
+    "A personal inventory application.",
   // REQUIRED (no https://, not trialing slash at the end, just the naked domain)
-  domainName: "shipfa.st",
+  domainName: "honeyfinder.coltonpomeroy.com",
   crisp: {
     // Crisp website ID. IF YOU DON'T USE CRISP: just remove this => Then add a support email in this config file (mailgun.supportEmail) otherwise customer support won't work.
     id: "",
@@ -21,23 +21,22 @@ const config = {
         // REQUIRED — we use this to find the plan in the webhook (for instance if you want to update the user's credits based on the plan)
         priceId:
           process.env.NODE_ENV === "development"
-            ? "price_1Niyy5AxyNprDp7iZIqEyD2h"
+            ? "prod_RJyGjecJjRZ5s6"
             : "price_456",
         //  REQUIRED - Name of the plan, displayed on the pricing page
-        name: "Starter",
+        name: "Basic",
         // A friendly description of the plan, displayed on the pricing page. Tip: explain why this plan and not others
-        description: "Perfect for small projects",
+        description: "A simple inventory tracker",
         // The price you want to display, the one user will be charged on Stripe.
-        price: 9.99,
+        price: '1.99/mo.',
         // If you have an anchor price (i.e. $29) that you want to display crossed out, put it here. Otherwise, leave it empty
-        priceAnchor: 14.99,
+        priceAnchor: '4.99/mo.',
         features: [
+          { name: "Up to one hundred (100) trackable items" },
           {
-            name: "NextJS boilerplate",
+            name: "Five (5) unique storage locations",
           },
-          { name: "User oauth" },
-          { name: "Database" },
-          { name: "Emails" },
+          { name: "Ad-supported" },
         ],
       },
       {
@@ -45,20 +44,18 @@ const config = {
         isFeatured: true,
         priceId:
           process.env.NODE_ENV === "development"
-            ? "price_1O5KtcAxyNprDp7iftKnrrpw"
+            ? "prod_RJy86MAxdGOcZx"
             : "price_456",
-        name: "Advanced",
+        name: "Premium",
         description: "You need more power",
-        price: 14.99,
-        priceAnchor: 19.99,
+        price: '4.99/mo',
+        priceAnchor: '9.99/mo.',
         features: [
           {
-            name: "NextJS boilerplate",
+            name: "Unlimited trackable items",
           },
-          { name: "User oauth" },
-          { name: "Database" },
-          { name: "Emails" },
-          { name: "1 year of updates" },
+          { name: "Unlimited storage locations" },
+          { name: "Ad-free" },
           { name: "24/7 support" },
         ],
       },
@@ -74,9 +71,9 @@ const config = {
     // subdomain to use when sending emails, if you don't have a subdomain, just remove it. Highly recommended to have one (i.e. mg.yourdomain.com or mail.yourdomain.com)
     subdomain: "mg",
     // REQUIRED — Email 'From' field to be used when sending magic login links
-    fromNoReply: `ShipFast <noreply@mg.shipfa.st>`,
+    fromNoReply: `HoneyFinder <noreply@mg.shipfa.st>`,
     // REQUIRED — Email 'From' field to be used when sending other emails, like abandoned carts, updates etc..
-    fromAdmin: `Marc at ShipFast <marc@mg.shipfa.st>`,
+    fromAdmin: `Colton at HoneyFinder <marc@mg.shipfa.st>`,
     // Email shown to customer if need support. Leave empty if not needed => if empty, set up Crisp above, otherwise you won't be able to offer customer support."
     supportEmail: "marc@mg.shipfa.st",
     // When someone replies to supportEmail sent by the app, forward it to the email below (otherwise it's lost). If you set supportEmail to empty, this will be ignored.
