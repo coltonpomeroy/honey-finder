@@ -38,10 +38,22 @@ export const authOptions = {
   // Learn more about the model type: https://next-auth.js.org/v3/adapters/models
   ...(connectMongo && { adapter: MongoDBAdapter(connectMongo) }),
 
+  
   callbacks: {
-    session: async ({ session, token }) => {
+    async jwt({ token, user, account }) {
+      // Add custom fields to the token
+      if (user) {
+        token.id = user.id; // User ID from database
+        token.email = user.email; // Email for API calls if needed
+        token.accessToken = account?.access_token; // OAuth access token if needed
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      // Attach the token to the session
       if (session?.user) {
-        session.user.id = token.sub;
+        session.user.id = token.id;
+        session.user.accessToken = token.accessToken; // Optional, for frontend use
       }
       return session;
     },

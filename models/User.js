@@ -1,8 +1,28 @@
 import mongoose from "mongoose";
 import toJSON from "./plugins/toJSON";
 
+// ITEM SCHEMA
+const itemSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  quantity: { type: Number, required: true },
+  expirationDate: { type: Date },
+  image: { type: String },
+}, { _id: false });
+
+// CONTAINER SCHEMA
+const containerSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  items: [itemSchema],
+}, { _id: false });
+
+// STORAGE LOCATION SCHEMA
+const storageLocationSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  containers: [containerSchema],
+}, { _id: false });
+
 // USER SCHEMA
-const userSchema = mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -17,25 +37,23 @@ const userSchema = mongoose.Schema(
     image: {
       type: String,
     },
-    // Used in the Stripe webhook to identify the user in Stripe and later create Customer Portal or prefill user credit card details
     customerId: {
       type: String,
       validate(value) {
         return value.includes("cus_");
       },
     },
-    // Used in the Stripe webhook. should match a plan in config.js file.
     priceId: {
       type: String,
       validate(value) {
         return value.includes("price_");
       },
     },
-    // Used to determine if the user has access to the product—it's turn on/off by the Stripe webhook
     hasAccess: {
       type: Boolean,
       default: false,
     },
+    storage: [storageLocationSchema],
   },
   {
     timestamps: true,
