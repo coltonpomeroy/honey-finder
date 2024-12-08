@@ -3,14 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import ButtonAccount from "@/components/ButtonAccount";
+import { useRouter } from 'next/compat/router';
+import Link from 'next/link';
 
 export const dynamic = "force-dynamic";
+
 
 export default function Dashboard() {
   const { data: session } = useSession();
   const [locations, setLocations] = useState([]);
   const [newLocation, setNewLocation] = useState('');
   const [message, setMessage] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     if (!session) return;
@@ -57,10 +61,10 @@ export default function Dashboard() {
       setMessage('Server error');
     }
   };
-
+  
   return (
     <main className="min-h-screen p-8 pb-24">
-      <section className="max-w-xl mx-auto space-y-8">
+      <section className="max-w-xxl mx-auto space-y-8">
         <ButtonAccount />
         <h1 className="text-3xl md:text-4xl font-extrabold">Private Page</h1>
         <form onSubmit={handleCreateLocation}>
@@ -76,10 +80,14 @@ export default function Dashboard() {
         </form>
         {message && <p>{message}</p>}
         <ul>
-          {locations.map((location, index) => (
-            <li key={index}>{location.name}</li>
-          ))}
-        </ul>
+        {locations.map((location, index) => (
+          <li key={index} className="cursor-pointer">
+          <Link href={`/location?id=${location._id}`}>
+            {location.name}
+          </Link>
+        </li>
+        ))}
+      </ul>
       </section>
     </main>
   );
