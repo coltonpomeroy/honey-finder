@@ -3,10 +3,9 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import ButtonAccount from "@/components/ButtonAccount";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import Link from 'next/link';
+import ButtonAccount from "@/components/ButtonAccount";
 
 export default function Location() {
   const params = useSearchParams();
@@ -15,9 +14,10 @@ export default function Location() {
   const [message, setMessage] = useState('');
   const [newContainerName, setNewContainerName] = useState('');
   const [newContainerItems, setNewContainerItems] = useState([]);
+  const [showAddContainerForm, setShowAddContainerForm] = useState(false);
   const [showAddItemForm, setShowAddItemForm] = useState(false);
   const [currentContainerId, setCurrentContainerId] = useState(null);
-  const [currentContainerName, setCurrentContainerName] = useState(null)
+  const [currentContainerName, setCurrentContainerName] = useState('');
   const [newItemName, setNewItemName] = useState('');
   const [newItemQuantity, setNewItemQuantity] = useState(0);
 
@@ -51,7 +51,7 @@ export default function Location() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: newContainerName, items: newContainerItems }),
+        body: JSON.stringify({ id, name: newContainerName, items: newContainerItems }), // Include id in the request body
       });
       const data = await response.json();
       if (response.ok) {
@@ -69,7 +69,7 @@ export default function Location() {
   const handleAddItem = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`/api/user/location/${id}/container/${currentContainerId}/item`, {
+      const response = await fetch(`/api/user/location/${id}/container/${currentContainerId}/add-item`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,10 +96,7 @@ export default function Location() {
 
   return (
     <main className="min-h-screen p-8 pb-24">
-      <section className="max-w-5xl mx-auto space-y-8">
-        <Link href="/dashboard">
-          Home
-        </Link>
+      <section className="max-w-xl mx-auto space-y-8">
         <ButtonAccount />
         <h1 className="text-3xl md:text-4xl font-extrabold">{location.name}</h1>
         {message && <p>{message}</p>}
@@ -114,17 +111,17 @@ export default function Location() {
                     {container.name}
                   </h2>
                   <button
-                      onClick={() => {
-                        setCurrentContainerId(container._id);
-                        setCurrentContainerName(container.name)
-                        setShowAddItemForm(true);
-                      }}
-                      className="ml-2 p-2 bg-blue-500 text-white"
-                    >
-                      Add <FontAwesomeIcon icon={faPlus} />
+                    onClick={() => {
+                      setCurrentContainerId(container._id);
+                      setCurrentContainerName(container.name);
+                      setShowAddItemForm(true);
+                      setShowAddContainerForm(false);
+                    }}
+                    className="ml-2 p-2 bg-blue-500 text-white"
+                  >
+                    <FontAwesomeIcon icon={faPlus} />
                   </button>
                 </div>
-                
                 <ul>
                   {container.items.map((item, itemIndex) => (
                     <li key={itemIndex}>
@@ -136,18 +133,29 @@ export default function Location() {
             ))}
           </ul>
         )}
-        <form onSubmit={handleAddContainer}>
-          <h2 className="text-2xl font-bold">Add New Container</h2>
-          <input
-            type="text"
-            value={newContainerName}
-            onChange={(e) => setNewContainerName(e.target.value)}
-            placeholder="Container Name"
-            required
-            className="border p-2"
-          />
-          <button type="submit" className="ml-2 p-2 bg-blue-500 text-white">Add <FontAwesomeIcon icon={faPlus} /></button>
-        </form>
+        <button
+          onClick={() => {
+            setShowAddContainerForm(true);
+            setShowAddItemForm(false);
+          }}
+          className="ml-2 p-2 bg-blue-500 text-white"
+        >
+          Add Container
+        </button>
+        {showAddContainerForm && (
+          <form onSubmit={handleAddContainer}>
+            <h2 className="text-2xl font-bold">Add a new container</h2>
+            <input
+              type="text"
+              value={newContainerName}
+              onChange={(e) => setNewContainerName(e.target.value)}
+              placeholder="Container Name"
+              required
+              className="border p-2"
+            />
+            <button type="submit" className="ml-2 p-2 bg-blue-500 text-white">Add Container</button>
+          </form>
+        )}
         {showAddItemForm && (
           <form onSubmit={handleAddItem}>
             <h2 className="text-2xl font-bold">Add a new item to {currentContainerName}</h2>
