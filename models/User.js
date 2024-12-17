@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 const itemSchema = new mongoose.Schema({
   name: { type: String, required: true },
   quantity: { type: Number, required: true },
-  expirationDate: { type: Date },
+  expirationDate: { type: Date }, // This field is already optional
   image: { type: String },
 }, { _id: true, timestamps: true });
 

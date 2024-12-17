@@ -16,7 +16,7 @@ export async function POST(req) {
   console.log("Hello from POST container route");
 
   const body = await req.json(); // Parse the JSON body
-  const { id, name, items } = body;
+  const { name, items, id } = body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });

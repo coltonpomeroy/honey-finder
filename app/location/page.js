@@ -20,6 +20,7 @@ export default function Location() {
   const [currentContainerName, setCurrentContainerName] = useState('');
   const [newItemName, setNewItemName] = useState('');
   const [newItemQuantity, setNewItemQuantity] = useState(0);
+  const [newItemExpirationDate, setNewItemExpirationDate] = useState(''); // New state for expiration date
 
   const id = params.get('id'); // Access the 'id' query parameter
 
@@ -51,7 +52,7 @@ export default function Location() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id, name: newContainerName, items: newContainerItems }), // Include id in the request body
+        body: JSON.stringify({ name: newContainerName, items: newContainerItems }), // Include name and items in the request body
       });
       const data = await response.json();
       if (response.ok) {
@@ -69,18 +70,19 @@ export default function Location() {
   const handleAddItem = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`/api/user/location/${id}/container/${currentContainerId}/add-item`, {
+      const response = await fetch(`/api/user/location/${id}/container/${currentContainerId}/item`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: newItemName, quantity: newItemQuantity }),
+        body: JSON.stringify({ id, name: newItemName, quantity: newItemQuantity, expirationDate: newItemExpirationDate }), // Include expiration date
       });
       const data = await response.json();
       if (response.ok) {
         setLocation(data.location);
         setNewItemName('');
         setNewItemQuantity(0);
+        setNewItemExpirationDate(''); // Reset expiration date
         setShowAddItemForm(false);
       } else {
         setMessage(data.message || 'Failed to add item');
@@ -126,6 +128,11 @@ export default function Location() {
                   {container.items.map((item, itemIndex) => (
                     <li key={itemIndex}>
                       {item.name} - {item.quantity}
+                      {item.expirationDate && (
+                        <span className="ml-2 text-gray-500">
+                          (Expires: {new Date(item.expirationDate).toLocaleDateString()})
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -173,6 +180,13 @@ export default function Location() {
               onChange={(e) => setNewItemQuantity(Number(e.target.value))}
               placeholder="Quantity"
               required
+              className="border p-2 ml-2"
+            />
+            <input
+              type="date"
+              value={newItemExpirationDate}
+              onChange={(e) => setNewItemExpirationDate(e.target.value)}
+              placeholder="Expiration Date"
               className="border p-2 ml-2"
             />
             <button type="submit" className="ml-2 p-2 bg-blue-500 text-white">Add Item</button>

@@ -1,22 +1,21 @@
 import mongoose from 'mongoose';
-import User from '../../../../../models/User'; // Adjust the path to your User model
 import { getToken } from 'next-auth/jwt';
+import User from '@/models/User';
 import { NextResponse } from 'next/server';
 import connectMongo from '@/libs/mongoose';
 
 const secret = process.env.NEXTAUTH_SECRET;
 
-export async function POST(req) {
+export async function POST(req, {params}) {
   await connectMongo();
   const token = await getToken({ req, secret });
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
+  const { id, containerId } = params;
+  const { name, quantity, expirationDate } = await req.json();
 
-  const { id } = req.query;
-  const { name, items } = await req.json();
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(containerId)) {
     return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
   }
 
@@ -31,7 +30,12 @@ export async function POST(req) {
       return NextResponse.json({ message: 'Location not found' }, { status: 404 });
     }
 
-    location.containers.push({ name, items });
+    const container = location.containers.id(containerId);
+    if (!container) {
+      return NextResponse.json({ message: 'Container not found' }, { status: 404 });
+    }
+
+    container.items.push({ name, quantity, expirationDate });
     await user.save();
 
     return NextResponse.json({ location }, { status: 201 });
