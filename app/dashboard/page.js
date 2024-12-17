@@ -8,12 +8,17 @@ import Modal from "@/components/Modal";
 export default function Dashboard() {
   const { data: session } = useSession();
   const [items, setItems] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [containers, setContainers] = useState([]);
   const [message, setMessage] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [currentItem, setCurrentItem] = useState(null);
   const [editName, setEditName] = useState('');
   const [editQuantity, setEditQuantity] = useState('');
+  const [editExpirationDate, setEditExpirationDate] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedContainer, setSelectedContainer] = useState('');
 
   useEffect(() => {
     if (!session) return;
@@ -41,10 +46,39 @@ export default function Dashboard() {
     fetchItems();
   }, [session]);
 
+  useEffect(() => {
+    if (!session) return;
+
+    // Fetch all locations on component mount
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch('/api/user/locations', {
+          headers: {
+            'Authorization': `Bearer ${session.accessToken}`,
+          },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setLocations(data.locations);
+        } else {
+          setMessage(data.message || 'Failed to fetch locations');
+        }
+      } catch (error) {
+        setMessage('Server error');
+        console.error({ error });
+      }
+    };
+
+    fetchLocations();
+  }, [session]);
+
   const handleEdit = (item) => {
     setCurrentItem(item);
     setEditName(item.name);
     setEditQuantity(item.quantity);
+    setEditExpirationDate(item.expiration ? new Date(item.expiration).toISOString().split('T')[0] : '');
+    setSelectedLocation(item.locationId);
+    setSelectedContainer(item.containerId);
     setModalTitle('Edit Item');
     setIsModalOpen(true);
   };
@@ -55,11 +89,25 @@ export default function Dashboard() {
     setIsModalOpen(true);
   };
 
+  const handleCreate = () => {
+    setCurrentItem(null);
+    setEditName('');
+    setEditQuantity('');
+    setEditExpirationDate('');
+    setSelectedLocation('');
+    setSelectedContainer('');
+    setModalTitle('Create Item');
+    setIsModalOpen(true);
+  };
+
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentItem(null);
     setEditName('');
     setEditQuantity('');
+    setEditExpirationDate('');
+    setSelectedLocation('');
+    setSelectedContainer('');
   };
 
   const confirmDelete = async () => {
@@ -96,13 +144,13 @@ export default function Dashboard() {
   };
 
   const confirmEdit = async () => {
-    if (!currentItem || !currentItem.locationId || !currentItem.containerId || !currentItem.item) {
+    if (!currentItem || !selectedLocation || !selectedContainer || !currentItem.item) {
       setMessage('Invalid item details');
       return;
     }
 
     try {
-      const response = await fetch(`/api/user/location/${currentItem.locationId}/container/${currentItem.containerId}/item/${currentItem.item}`, {
+      const response = await fetch(`/api/user/location/${selectedLocation}/container/${selectedContainer}/item/${currentItem.item}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${session.accessToken}`,
@@ -111,6 +159,7 @@ export default function Dashboard() {
         body: JSON.stringify({
           name: editName,
           quantity: editQuantity,
+          expirationDate: editExpirationDate,
         }),
       });
 
@@ -134,12 +183,87 @@ export default function Dashboard() {
     }
   };
 
+  const confirmCreate = async (addAnother = false) => {
+    if (!editName || !editQuantity || !selectedLocation || !selectedContainer) {
+      setMessage('Please provide valid item details');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/user/location/${selectedLocation}/container/${selectedContainer}/item`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: editName,
+          quantity: editQuantity,
+          expirationDate: editExpirationDate,
+        }),
+      });
+
+      if (response.ok) {
+        const newItem = await response.json();
+        setItems([...items, newItem]);
+        if (addAnother) {
+          setEditName('');
+          setEditQuantity('');
+          setEditExpirationDate('');
+        } else {
+          closeModal();
+        }
+      } else {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.indexOf('application/json') !== -1) {
+          const data = await response.json();
+          setMessage(data.message || 'Failed to create item');
+        } else {
+          const errorText = await response.text();
+          setMessage(`Failed to create item. Server returned: ${errorText}`);
+        }
+      }
+    } catch (error) {
+      setMessage('Server error');
+      console.error({ error });
+    }
+  };
+
+  const handleLocationChange = async (e) => {
+    const locationId = e.target.value;
+    setSelectedLocation(locationId);
+    setSelectedContainer('');
+
+    try {
+      const response = await fetch(`/api/user/location/${locationId}/containers`, {
+        headers: {
+          'Authorization': `Bearer ${session.accessToken}`,
+        },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setContainers(data.containers);
+      } else {
+        setMessage(data.message || 'Failed to fetch containers');
+      }
+    } catch (error) {
+      setMessage('Server error');
+      console.error({ error });
+    }
+  };
+
   return (
     <main className="min-h-screen p-8 pb-24">
       <section className="max-w-6xl mx-auto space-y-8">
         <ButtonAccount />
         <h1 className="text-3xl md:text-4xl font-extrabold">Dashboard</h1>
         {message && <p className="text-red-500">{message}</p>}
+        <button
+          onClick={handleCreate}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Create Item
+        </button>
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border border-gray-200">
             <thead>
@@ -208,7 +332,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <div>
-            <form onSubmit={(e) => { e.preventDefault(); confirmEdit(); }}>
+            <form onSubmit={(e) => { e.preventDefault(); modalTitle === 'Edit Item' ? confirmEdit() : confirmCreate(); }}>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
                   Item Name
@@ -233,9 +357,54 @@ export default function Dashboard() {
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 />
               </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="expirationDate">
+                  Expiration Date
+                </label>
+                <input
+                  type="date"
+                  id="expirationDate"
+                  value={editExpirationDate}
+                  onChange={(e) => setEditExpirationDate(e.target.value)}
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="location">
+                  Location
+                </label>
+                <select
+                  id="location"
+                  value={selectedLocation}
+                  onChange={handleLocationChange}
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                >
+                  <option value="">Select a location</option>
+                  {locations.map(location => (
+                    <option key={location.id} value={location.id}>{location.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="container">
+                  Container
+                </label>
+                <select
+                  id="container"
+                  value={selectedContainer}
+                  onChange={(e) => setSelectedContainer(e.target.value)}
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                >
+                  <option value="">Select a container</option>
+                  {containers.map(container => (
+                    <option key={container.id} value={container.id}>{container.name}</option>
+                  ))}
+                </select>
+              </div>
               <div className="flex justify-end">
                 <button onClick={closeModal} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 mr-2">Cancel</button>
                 <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Save</button>
+                <button type="button" onClick={() => confirmCreate(true)} className="ml-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Save and Add Another</button>
               </div>
             </form>
           </div>

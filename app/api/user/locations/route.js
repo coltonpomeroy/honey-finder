@@ -1,0 +1,26 @@
+import User from '@/models/User'; // Adjust the path to your User model
+import { getToken } from 'next-auth/jwt';
+import { NextResponse } from 'next/server';
+import connectMongo from '@/libs/mongoose';
+
+const secret = process.env.NEXTAUTH_SECRET;
+
+export async function GET(req) {
+  await connectMongo();
+  const token = await getToken({ req, secret });
+  if (!token) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const user = await User.findOne({ email: token.email });
+  if (!user) {
+    return NextResponse.json({ message: 'User not found' }, { status: 404 });
+  }
+
+  const locations = user.storage.map(location => ({
+    id: location._id,
+    name: location.name,
+  }));
+
+  return NextResponse.json({ locations }, { status: 200 });
+}
