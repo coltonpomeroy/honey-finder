@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '@/models/User'; // Adjust the path to your User model
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
@@ -73,5 +74,16 @@ export async function PUT(req, { params }) {
   item.expirationDate = expirationDate;
   await user.save();
 
-  return NextResponse.json({ message: 'Item updated successfully' }, { status: 200 });
+  const updatedItem = {
+    item: item._id,
+    name: item.name,
+    quantity: item.quantity,
+    expiration: item.expirationDate,
+    locationId: location._id,
+    locationName: location.name,
+    containerId: container._id,
+    container: container.name,
+  };
+
+  return NextResponse.json(updatedItem, { status: 200 });
 }
