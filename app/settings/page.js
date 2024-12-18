@@ -1,6 +1,4 @@
-"use client"
-
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import Modal from '@/components/Modal';
 
@@ -223,58 +221,60 @@ export default function Settings() {
             Create Container
           </button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 border-b">Location Name</th>
-                <th className="px-4 py-2 border-b">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {locations.map((location) => (
-                <tr key={location.id} className="hover:bg-gray-100">
-                  <td className="px-4 py-2 border-b">{location.name}</td>
-                  <td className="px-4 py-2 border-b">
-                    <button
-                      onClick={() => handleEditLocation(location)}
-                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                    >
-                      Edit
-                    </button>
-                  </td>
+        <Suspense fallback={<div>Loading...</div>}>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border border-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 border-b">Location Name</th>
+                  <th className="px-4 py-2 border-b">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="overflow-x-auto mt-8">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 border-b">Container Name</th>
-                <th className="px-4 py-2 border-b">Location</th>
-                <th className="px-4 py-2 border-b">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {containers.map((container) => (
-                <tr key={container.id} className="hover:bg-gray-100">
-                  <td className="px-4 py-2 border-b">{container.name}</td>
-                  <td className="px-4 py-2 border-b">{container.locationName}</td>
-                  <td className="px-4 py-2 border-b">
-                    <button
-                      onClick={() => handleEditContainer(container)}
-                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                    >
-                      Edit
-                    </button>
-                  </td>
+              </thead>
+              <tbody>
+                {locations.map((location) => (
+                  <tr key={location.id} className="hover:bg-gray-100">
+                    <td className="px-4 py-2 border-b">{location.name}</td>
+                    <td className="px-4 py-2 border-b">
+                      <button
+                        onClick={() => handleEditLocation(location)}
+                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="overflow-x-auto mt-8">
+            <table className="min-w-full bg-white border border-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 border-b">Container Name</th>
+                  <th className="px-4 py-2 border-b">Location</th>
+                  <th className="px-4 py-2 border-b">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {containers.map((container) => (
+                  <tr key={container.id} className="hover:bg-gray-100">
+                    <td className="px-4 py-2 border-b">{container.name}</td>
+                    <td className="px-4 py-2 border-b">{container.locationName}</td>
+                    <td className="px-4 py-2 border-b">
+                      <button
+                        onClick={() => handleEditContainer(container)}
+                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Suspense>
       </section>
 
       <Modal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
