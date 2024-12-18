@@ -6,8 +6,9 @@ import { useSession } from 'next-auth/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import ButtonAccount from "@/components/ButtonAccount";
+import { Suspense } from 'react';
 
-export default function Location() {
+function LocationContent() {
   const params = useSearchParams();
   const { data: session } = useSession();
   const [location, setLocation] = useState(null);
@@ -20,16 +21,22 @@ export default function Location() {
   const [currentContainerName, setCurrentContainerName] = useState('');
   const [newItemName, setNewItemName] = useState('');
   const [newItemQuantity, setNewItemQuantity] = useState(0);
-  const [newItemExpirationDate, setNewItemExpirationDate] = useState(''); // New state for expiration date
+  const [newItemExpirationDate, setNewItemExpirationDate] = useState('');
 
   const id = params.get('id'); // Access the 'id' query parameter
 
   useEffect(() => {
-    if (!session || !id) return;
+    if (!session) return;
 
+    // Fetch location data based on search params
     const fetchLocation = async () => {
       try {
-        const response = await fetch(`/api/user/location/${id}`);
+        const locationId = params.get('id');
+        const response = await fetch(`/api/user/location/${locationId}`, {
+          headers: {
+            'Authorization': `Bearer ${session.accessToken}`,
+          },
+        });
         const data = await response.json();
         if (response.ok) {
           setLocation(data.location);
@@ -38,11 +45,12 @@ export default function Location() {
         }
       } catch (error) {
         setMessage('Server error');
+        console.error({ error });
       }
     };
 
     fetchLocation();
-  }, [session, id]);
+  }, [session, params]);
 
   const handleAddContainer = async (e) => {
     e.preventDefault();
@@ -194,5 +202,13 @@ export default function Location() {
         )}
       </section>
     </main>
+  );
+}
+
+export default function Location() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LocationContent />
+    </Suspense>
   );
 }

@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import Modal from '@/components/Modal';
