@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Popover, Transition } from "@headlessui/react";
 import { useSession, signOut } from "next-auth/react";
 import apiClient from "@/libs/api";
+import Link from "next/link";
 
 // A button to show user some account actions
 //  1. Billing: open a Stripe Customer Portal to manage their billing (cancel subscription, update payment method, etc.).
@@ -91,6 +92,23 @@ const ButtonAccount = () => {
             <Popover.Panel className="absolute left-0 z-10 mt-3 w-screen max-w-[16rem] transform">
               <div className="overflow-hidden rounded-xl shadow-xl ring-1 ring-base-content ring-opacity-5 bg-base-100 p-1">
                 <div className="space-y-0.5 text-sm">
+                <Link href="/settings" legacyBehavior>
+                  <a className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="w-5 h-5 mr-2"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M11.3 1.046a1 1 0 00-2.6 0l-.287.574a1 1 0 01-.753.547l-.63.09a1 1 0 00-.564.287l-.45.45a1 1 0 01-.287.564l-.09.63a1 1 0 01-.547.753l-.574.287a1 1 0 000 2.6l.574.287a1 1 0 01.547.753l.09.63a1 1 0 00.287.564l.45.45a1 1 0 01.287.564l.09.63a1 1 0 01.753.547l.287.574a1 1 0 002.6 0l.287-.574a1 1 0 01.753-.547l.63-.09a1 1 0 00.564-.287l.45-.45a1 1 0 01.287-.564l.09-.63a1 1 0 01.547-.753l.574-.287a1 1 0 000-2.6l-.574-.287a1 1 0 01-.547-.753l-.09-.63a1 1 0 00-.287-.564l-.45-.45a1 1 0 01-.287-.564l-.09-.63a1 1 0 01-.753-.547l-.287-.574zM10 6a4 4 0 100 8 4 4 0 000-8z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Settings
+                  </a>
+                </Link>
                   <button
                     className="flex items-center gap-2 hover:bg-base-300 duration-200 py-1.5 px-4 w-full rounded-lg font-medium"
                     onClick={handleBilling}

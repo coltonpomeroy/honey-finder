@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import ButtonAccount from "@/components/ButtonAccount";
 import Modal from "@/components/Modal";
+import BarcodeScannerComponent from "react-qr-barcode-scanner";
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -15,10 +16,12 @@ export default function Dashboard() {
   const [modalTitle, setModalTitle] = useState('');
   const [currentItem, setCurrentItem] = useState(null);
   const [editName, setEditName] = useState('');
-  const [editQuantity, setEditQuantity] = useState('');
+  const [editQuantity, setEditQuantity] = useState(1);
   const [editExpirationDate, setEditExpirationDate] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedContainer, setSelectedContainer] = useState('');
+  const [scannedBarcode, setScannedBarcode] = useState('');
+  const [showScanner, setShowScanner] = useState(true);
 
   useEffect(() => {
     if (!session) return;
@@ -92,10 +95,12 @@ export default function Dashboard() {
   const handleCreate = () => {
     setCurrentItem(null);
     setEditName('');
-    setEditQuantity('');
+    setEditQuantity(1);
     setEditExpirationDate('');
     setSelectedLocation('');
     setSelectedContainer('');
+    setScannedBarcode('');
+    setShowScanner(true);
     setModalTitle('Create Item');
     setIsModalOpen(true);
   };
@@ -104,10 +109,12 @@ export default function Dashboard() {
     setIsModalOpen(false);
     setCurrentItem(null);
     setEditName('');
-    setEditQuantity('');
+    setEditQuantity(1);
     setEditExpirationDate('');
     setSelectedLocation('');
     setSelectedContainer('');
+    setScannedBarcode('');
+    setShowScanner(true);
   };
 
   const confirmDelete = async () => {
@@ -200,6 +207,7 @@ export default function Dashboard() {
           name: editName,
           quantity: editQuantity,
           expirationDate: editExpirationDate,
+          barcode: scannedBarcode,
         }),
       });
 
@@ -208,8 +216,10 @@ export default function Dashboard() {
         setItems([...items, newItem]);
         if (addAnother) {
           setEditName('');
-          setEditQuantity('');
+          setEditQuantity(1);
           setEditExpirationDate('');
+          setScannedBarcode('');
+          setShowScanner(true);
         } else {
           closeModal();
         }
@@ -248,6 +258,25 @@ export default function Dashboard() {
       }
     } catch (error) {
       setMessage('Server error');
+      console.error({ error });
+    }
+  };
+
+  const handleBarcodeScan = async (barcode) => {
+    setScannedBarcode(barcode);
+    try {
+      const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+      const data = await response.json();
+      if (data.status === 1) {
+        const brand = data.product.brands;
+        const productName = data.product.product_name;
+        setEditName(`${brand} - ${productName}`);
+        setShowScanner(false);
+      } else {
+        setMessage('Product not found');
+      }
+    } catch (error) {
+      setMessage('Error fetching product details');
       console.error({ error });
     }
   };
@@ -332,81 +361,93 @@ export default function Dashboard() {
           </div>
         ) : (
           <div>
-            <form onSubmit={(e) => { e.preventDefault(); modalTitle === 'Edit Item' ? confirmEdit() : confirmCreate(); }}>
+            {showScanner ? (
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-                  Item Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                <BarcodeScannerComponent
+                  width="100%"
+                  height="200px"
+                  onUpdate={(err, result) => {
+                    if (result) handleBarcodeScan(result.text);
+                  }}
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="quantity">
-                  Quantity
-                </label>
-                <input
-                  type="number"
-                  id="quantity"
-                  value={editQuantity}
-                  onChange={(e) => setEditQuantity(e.target.value)}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="expirationDate">
-                  Expiration Date
-                </label>
-                <input
-                  type="date"
-                  id="expirationDate"
-                  value={editExpirationDate}
-                  onChange={(e) => setEditExpirationDate(e.target.value)}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="location">
-                  Location
-                </label>
-                <select
-                  id="location"
-                  value={selectedLocation}
-                  onChange={handleLocationChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                >
-                  <option value="">Select a location</option>
-                  {locations.map(location => (
-                    <option key={location.id} value={location.id}>{location.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="container">
-                  Container
-                </label>
-                <select
-                  id="container"
-                  value={selectedContainer}
-                  onChange={(e) => setSelectedContainer(e.target.value)}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                >
-                  <option value="">Select a container</option>
-                  {containers.map(container => (
-                    <option key={container.id} value={container.id}>{container.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex justify-end">
-                <button onClick={closeModal} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 mr-2">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Save</button>
-                <button type="button" onClick={() => confirmCreate(true)} className="ml-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Save and Add Another</button>
-              </div>
-            </form>
+            ) : (
+              <form onSubmit={(e) => { e.preventDefault(); modalTitle === 'Edit Item' ? confirmEdit() : confirmCreate(); }}>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
+                    Item Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="quantity">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    id="quantity"
+                    value={editQuantity}
+                    onChange={(e) => setEditQuantity(e.target.value)}
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="expirationDate">
+                    Expiration Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    id="expirationDate"
+                    value={editExpirationDate}
+                    onChange={(e) => setEditExpirationDate(e.target.value)}
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="location">
+                    Location
+                  </label>
+                  <select
+                    id="location"
+                    value={selectedLocation}
+                    onChange={handleLocationChange}
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  >
+                    <option value="">Select a location</option>
+                    {locations.map(location => (
+                      <option key={location.id} value={location.id}>{location.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="container">
+                    Container
+                  </label>
+                  <select
+                    id="container"
+                    value={selectedContainer}
+                    onChange={(e) => setSelectedContainer(e.target.value)}
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  >
+                    <option value="">Select a container</option>
+                    {containers.map(container => (
+                      <option key={container.id} value={container.id}>{container.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex justify-end">
+                  <button onClick={closeModal} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 mr-2">Cancel</button>
+                  <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Save</button>
+                  <button type="button" onClick={() => confirmCreate(true)} className="ml-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Save and Add Another</button>
+                </div>
+              </form>
+            )}
           </div>
         )}
       </Modal>
