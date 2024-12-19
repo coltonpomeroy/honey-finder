@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import ButtonAccount from "@/components/ButtonAccount";
 import Modal from "@/components/Modal";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
+import BarcodeReader from 'react-barcode-reader'
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -366,10 +367,13 @@ export default function Dashboard() {
                 <BarcodeScannerComponent
                   width="100%"
                   height="200px"
+                  torch={true}
                   onUpdate={(err, result) => {
                     if (result) handleBarcodeScan(result.text);
                   }}
                 />
+                {/* <BarcodeReader
+                  onScan={handleBarcodeScan} />                     */}
               </div>
             ) : (
               <form onSubmit={(e) => { e.preventDefault(); modalTitle === 'Edit Item' ? confirmEdit() : confirmCreate(); }}>
