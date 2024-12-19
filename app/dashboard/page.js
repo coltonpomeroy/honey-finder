@@ -23,6 +23,7 @@ export default function Dashboard() {
   const [scannedBarcode, setScannedBarcode] = useState('');
   const [showScanner, setShowScanner] = useState(true);
   const scannerRef = useRef(null);
+  const [showActions, setShowActions] = useState({});
 
   useEffect(() => {
     if (!session) return;
@@ -115,10 +116,9 @@ export default function Dashboard() {
     setSelectedLocation('');
     setSelectedContainer('');
     setScannedBarcode('');
-    setShowScanner(true);
+    setShowScanner(false);
     if (scannerRef.current) {
       scannerRef.current.clear();
-      scannerRef.current.stop();
     }
   };
 
@@ -278,8 +278,11 @@ export default function Dashboard() {
         setEditName(`${brand} - ${productName}`);
         setShowScanner(false);
         if (scannerRef.current) {
-          scannerRef.current.clear();
-          scannerRef.current.stop();
+          scannerRef.current.clear().then(() => {
+            scannerRef.current = null;
+          }).catch((err) => {
+            console.error("Failed to clear scanner", err);
+          });
         }
       } else {
         setMessage('Product not found');
@@ -290,17 +293,38 @@ export default function Dashboard() {
     }
   };
 
+  // useEffect(() => {
+  //   if (isModalOpen && showScanner) {
+  //     const scanner = new Html5QrcodeScanner(
+  //       "scanner",
+  //       { fps: 10, qrbox: 250 },
+  //       false
+  //     );
+  //     scanner.render(handleBarcodeScan);
+  //     scannerRef.current = scanner;
+  //   }
+  // }, [isModalOpen, showScanner]);
+
   useEffect(() => {
-    if (isModalOpen && showScanner) {
-      const scanner = new Html5QrcodeScanner(
-        "scanner",
-        { fps: 10, qrbox: 250 },
-        false
-      );
-      scanner.render(handleBarcodeScan);
-      scannerRef.current = scanner;
+    if (showScanner) {
+      const scannerElement = document.getElementById("scanner");
+      if (scannerElement) {
+        const scanner = new Html5QrcodeScanner(
+          "scanner",
+          { fps: 10, qrbox: 250 },
+          /* verbose= */ false
+        );
+        scanner.render(onScanSuccess, onScanFailure);
+        scannerRef.current = scanner;
+      }
     }
-  }, [isModalOpen, showScanner]);
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear();
+        scannerRef.current = null;
+      }
+    };
+  }, [showScanner]);
 
   return (
     <main className="min-h-screen p-8 pb-24">
@@ -315,43 +339,44 @@ export default function Dashboard() {
           Create Item
         </button>
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 border-b">Item Name</th>
-                <th className="px-4 py-2 border-b">Quantity</th>
-                <th className="px-4 py-2 border-b">Expiration Date</th>
-                <th className="px-4 py-2 border-b">Location</th>
-                <th className="px-4 py-2 border-b">Container</th>
-                <th className="px-4 py-2 border-b">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.item} className="hover:bg-gray-100">
-                  <td className="px-4 py-2 border-b">{item.name}</td>
-                  <td className="px-4 py-2 border-b">{item.quantity}</td>
-                  <td className="px-4 py-2 border-b">{item.expiration ? new Date(item.expiration).toLocaleDateString() : 'N/A'}</td>
-                  <td className="px-4 py-2 border-b">{item.locationName}</td>
-                  <td className="px-4 py-2 border-b">{item.container}</td>
-                  <td className="px-4 py-2 border-b">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item)}
-                      className="ml-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="min-w-full bg-white border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-100 p-4">
+              <div className="font-bold">Item Name</div>
+            </div>
+            {items.map((item) => (
+              <div
+                key={item.item}
+                className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border-b cursor-pointer"
+                onClick={() => setShowActions((prev) => ({ ...prev, [item.item]: !prev[item.item] }))}
+              >
+                <div>
+                  <div>{item.name}</div>
+                  {showActions[item.item] && (
+                    <div className="mt-2 flex space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(item);
+                        }}
+                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(item);
+                        }}
+                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
