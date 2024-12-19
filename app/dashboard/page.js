@@ -24,6 +24,8 @@ export default function Dashboard() {
   const [showScanner, setShowScanner] = useState(false);
   const scannerRef = useRef(null);
   const [showActions, setShowActions] = useState({});
+  const [recipes, setRecipes] = useState([]);
+  const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
 
   useEffect(() => {
     if (!session) return;
@@ -267,6 +269,31 @@ export default function Dashboard() {
     }
   };
 
+  const getRecipeSuggestions = async () => {
+    setIsLoadingRecipes(true);
+    try {
+      const response = await fetch('/api/webhook/openai', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      if (response.ok) {
+        setRecipes(data.data);
+      } else {
+        setMessage(data.message || 'Failed to get recipes');
+      }
+    } catch (error) {
+      setMessage('Error getting recipes');
+      console.error({ error });
+    } finally {
+      setIsLoadingRecipes(false);
+    }
+  };
+
   useEffect(() => {
     console.log('Scanner effect running, showScanner:', showScanner);
     if (showScanner) {
@@ -335,17 +362,60 @@ export default function Dashboard() {
         <ButtonAccount />
         <h1 className="text-3xl md:text-4xl font-extrabold">Dashboard</h1>
         {message && <p className="text-red-500">{message}</p>}
-        <button
-          onClick={handleCreate}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Create Item
-        </button>
+        <div className="flex gap-4"> {/* Changed from space-x-4 to gap-4 for better spacing */}
+          <button
+            onClick={handleCreate}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Create Item
+          </button>
+          <button
+            onClick={getRecipeSuggestions}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          >
+            Get Recipe Ideas
+          </button>
+        </div>
         <div className="overflow-x-auto">
+           {/* RECIPE SUGGESTIONS */}
+           {isLoadingRecipes ? (
+              <div className="text-center">Loading recipes...</div>
+            ) : recipes.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold mb-4">Recipe Suggestions</h2>
+                <div className="grid gap-6 md:grid-cols-2">
+                  {recipes.map((recipe, index) => (
+                    <div key={index} className="bg-white p-6 rounded-lg shadow">
+                      <h3 className="text-xl font-bold mb-3">{recipe.title}</h3>
+                      <div className="mb-4">
+                        <h4 className="font-semibold mb-2">Ingredients:</h4>
+                        <ul className="list-disc pl-5">
+                          {recipe.ingredients.map((ingredient, i) => (
+                            <li key={i}>{ingredient}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="mb-4">
+                        <h4 className="font-semibold mb-2">Instructions:</h4>
+                        <ol className="list-decimal pl-5">
+                          {recipe.instructions.map((step, i) => (
+                            <li key={i}>{step}</li>
+                          ))}
+                        </ol>
+                      </div>
+                      <div className="text-green-600 font-semibold">
+                        {recipe.costSavings}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           <div className="min-w-full bg-white border border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-100 p-4">
               <div className="font-bold">Item Name</div>
             </div>
+            {/* ITEMS TABLE */}
             {items.map((item) => (
               <div
                 key={item.item}
