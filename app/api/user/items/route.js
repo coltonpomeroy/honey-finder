@@ -9,7 +9,7 @@ const secret = process.env.NEXTAUTH_SECRET;
 export async function GET(req) {
   await connectMongo();
   const token = await getToken({ req, secret });
-  console.log({ token, req, secret })
+  console.log({ token, secret })
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
