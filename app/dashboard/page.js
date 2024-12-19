@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import ButtonAccount from "@/components/ButtonAccount";
 import Modal from "@/components/Modal";
-import BarcodeScannerComponent from "react-qr-barcode-scanner";
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [selectedContainer, setSelectedContainer] = useState('');
   const [scannedBarcode, setScannedBarcode] = useState('');
   const [showScanner, setShowScanner] = useState(true);
+  const scannerRef = useRef(null);
 
   useEffect(() => {
     if (!session) return;
@@ -115,6 +116,10 @@ export default function Dashboard() {
     setSelectedContainer('');
     setScannedBarcode('');
     setShowScanner(true);
+    if (scannerRef.current) {
+      scannerRef.current.clear();
+      scannerRef.current.stop();
+    }
   };
 
   const confirmDelete = async () => {
@@ -262,16 +267,20 @@ export default function Dashboard() {
     }
   };
 
-  const handleBarcodeScan = async (barcode) => {
-    setScannedBarcode(barcode);
+  const handleBarcodeScan = async (decodedText, decodedResult) => {
+    setScannedBarcode(decodedText);
     try {
-      const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+      const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${decodedText}.json`);
       const data = await response.json();
       if (data.status === 1) {
         const brand = data.product.brands;
         const productName = data.product.product_name;
         setEditName(`${brand} - ${productName}`);
         setShowScanner(false);
+        if (scannerRef.current) {
+          scannerRef.current.clear();
+          scannerRef.current.stop();
+        }
       } else {
         setMessage('Product not found');
       }
@@ -280,6 +289,18 @@ export default function Dashboard() {
       console.error({ error });
     }
   };
+
+  useEffect(() => {
+    if (isModalOpen && showScanner) {
+      const scanner = new Html5QrcodeScanner(
+        "scanner",
+        { fps: 10, qrbox: 250 },
+        false
+      );
+      scanner.render(handleBarcodeScan);
+      scannerRef.current = scanner;
+    }
+  }, [isModalOpen, showScanner]);
 
   return (
     <main className="min-h-screen p-8 pb-24">
@@ -363,16 +384,7 @@ export default function Dashboard() {
           <div>
             {showScanner ? (
               <div className="mb-4">
-                <BarcodeScannerComponent
-                  width="100%"
-                  height="200px"
-                  torch={true}
-                  onUpdate={(err, result) => {
-                    if (result) handleBarcodeScan(result.text);
-                  }}
-                />
-                {/* <BarcodeReader
-                  onScan={handleBarcodeScan} />                     */}
+                <div id="scanner" style={{ width: '100%' }}></div>
               </div>
             ) : (
               <form onSubmit={(e) => { e.preventDefault(); modalTitle === 'Edit Item' ? confirmEdit() : confirmCreate(); }}>
