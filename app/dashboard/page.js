@@ -21,7 +21,7 @@ export default function Dashboard() {
   const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedContainer, setSelectedContainer] = useState('');
   const [scannedBarcode, setScannedBarcode] = useState('');
-  const [showScanner, setShowScanner] = useState(true);
+  const [showScanner, setShowScanner] = useState(false);
   const scannerRef = useRef(null);
   const [showActions, setShowActions] = useState({});
 
@@ -102,9 +102,9 @@ export default function Dashboard() {
     setSelectedLocation('');
     setSelectedContainer('');
     setScannedBarcode('');
-    setShowScanner(true);
     setModalTitle('Create Item');
     setIsModalOpen(true);
+    setShowScanner(true); // Explicitly set to true
   };
 
   const closeModal = () => {
@@ -268,8 +268,10 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    console.log('Scanner effect running, showScanner:', showScanner);
     if (showScanner) {
       const scannerElement = document.getElementById("scanner");
+      console.log('Scanner element:', scannerElement);
       if (scannerElement) {
         const scanner = new Html5QrcodeScanner(
           "scanner",
@@ -282,45 +284,45 @@ export default function Dashboard() {
     }
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.clear();
-        scannerRef.current = null;
+        try {
+          scannerRef.current.clear();
+        } catch (error) {
+          console.error("Failed to clear scanner:", error);
+        } finally {
+          scannerRef.current = null;
+        }
       }
     };
   }, [showScanner]);
+  
 
-  useEffect(async() => {
-    if(!scannedBarcode.length > 0){
-      try {
-        const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${scannedBarcode}.json`);
-        const data = await response.json();
-        if (data.status === 1) {
-          const brand = data.product.brands;
-          const productName = data.product.product_name;
-          setEditName(`${brand} - ${productName}`);
-          setShowScanner(false);
-          if (scannerRef.current) {
-            scannerRef.current.clear().then(() => {
-              scannerRef.current = null;
-            }).catch((err) => {
-              console.error("Failed to clear scanner", err);
-            });
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      if (scannedBarcode.length > 0) { // Fixed condition
+        try {
+          const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${scannedBarcode}.json`);
+          const data = await response.json();
+          if (data.status === 1) {
+            const brand = data.product.brands;
+            const productName = data.product.product_name;
+            setEditName(`${brand} - ${productName}`);
+            setShowScanner(false);
+          } else {
+            setMessage('Product not found');
           }
-        } else {
-          setMessage('Product not found');
+        } catch (error) {
+          setMessage('Error fetching product details');
+          console.error({ error });
         }
-      } catch (error) {
-        setMessage('Error fetching product details');
-        console.error({ error });
       }
-    }
-
+    };
+  
+    fetchProductDetails();
   }, [scannedBarcode]);
 
   const onScanSuccess = (decodedText, decodedResult) => {
     console.log(`Scan result: ${decodedText}`, decodedResult);
-    // Handle the scanned result here
     setScannedBarcode(decodedText);
-    setShowScanner(false);
   };
 
   const onScanFailure = (error) => {
