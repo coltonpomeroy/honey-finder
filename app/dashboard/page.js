@@ -267,44 +267,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleBarcodeScan = async (decodedText, decodedResult) => {
-    setScannedBarcode(decodedText);
-    try {
-      const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${decodedText}.json`);
-      const data = await response.json();
-      if (data.status === 1) {
-        const brand = data.product.brands;
-        const productName = data.product.product_name;
-        setEditName(`${brand} - ${productName}`);
-        setShowScanner(false);
-        if (scannerRef.current) {
-          scannerRef.current.clear().then(() => {
-            scannerRef.current = null;
-          }).catch((err) => {
-            console.error("Failed to clear scanner", err);
-          });
-        }
-      } else {
-        setMessage('Product not found');
-      }
-    } catch (error) {
-      setMessage('Error fetching product details');
-      console.error({ error });
-    }
-  };
-
-  // useEffect(() => {
-  //   if (isModalOpen && showScanner) {
-  //     const scanner = new Html5QrcodeScanner(
-  //       "scanner",
-  //       { fps: 10, qrbox: 250 },
-  //       false
-  //     );
-  //     scanner.render(handleBarcodeScan);
-  //     scannerRef.current = scanner;
-  //   }
-  // }, [isModalOpen, showScanner]);
-
   useEffect(() => {
     if (showScanner) {
       const scannerElement = document.getElementById("scanner");
@@ -325,6 +287,17 @@ export default function Dashboard() {
       }
     };
   }, [showScanner]);
+
+  const onScanSuccess = (decodedText, decodedResult) => {
+    console.log(`Scan result: ${decodedText}`, decodedResult);
+    // Handle the scanned result here
+    setScannedBarcode(decodedText);
+    setShowScanner(false);
+  };
+
+  const onScanFailure = (error) => {
+    console.warn(`Scan failed: ${error}`);
+  };
 
   return (
     <main className="min-h-screen p-8 pb-24">
