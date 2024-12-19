@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react';
 import ButtonAccount from "@/components/ButtonAccount";
 import Modal from "@/components/Modal";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
-import BarcodeReader from 'react-barcode-reader'
 
 export default function Dashboard() {
   const { data: session } = useSession();
