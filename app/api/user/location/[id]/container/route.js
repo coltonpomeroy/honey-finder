@@ -6,17 +6,17 @@ import connectMongo from '@/libs/mongoose';
 
 const secret = process.env.NEXTAUTH_SECRET;
 
-export async function POST(req) {
+export async function POST(req, { params }) {
   await connectMongo();
   const token = process.env.NODE_ENV === 'development' ? 
-    await getToken({ req, secret })
-    : await getToken({ req, secret, secureCookie: true });
+  await getToken({ req, secret })
+  : await getToken({ req, secret, secureCookie: true });
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await req.json(); // Parse the JSON body
-  const { name, items, id } = body;
+  const { name } = await req.json();
+  const { id } = params; // Get id from route parameters
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
@@ -33,11 +33,15 @@ export async function POST(req) {
       return NextResponse.json({ message: 'Location not found' }, { status: 404 });
     }
 
-    location.containers.push({ name, items });
+    // Add the new container to the location's containers array
+    location.containers.push({ name, items: [] });
     await user.save();
 
-    return NextResponse.json({ location }, { status: 201 });
+    // Fetch the updated location to ensure the response is accurate
+    const updatedLocation = user.storage.id(id);
+
+    return NextResponse.json({ location: updatedLocation }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: 'Server error', error }, { status: 500 });
+    return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
 }

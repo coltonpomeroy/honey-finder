@@ -2,6 +2,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import Modal from '@/components/Modal';
+import Link from 'next/link';
 
 export default function Settings() {
   const { data: session } = useSession();
@@ -14,12 +15,13 @@ export default function Settings() {
   const [currentContainer, setCurrentContainer] = useState(null);
   const [editName, setEditName] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [selectedLocationForContainer, setSelectedLocationForContainer] = useState(null); // New state
+  const [selectedContainer, setSelectedContainer] = useState(null);
+  const [selectedLocationForContainer, setSelectedLocationForContainer] = useState(null);
 
   useEffect(() => {
     if (!session) return;
 
-    const fetchLocationsAndContainers = async () => {
+    const fetchLocations = async () => {
       try {
         const response = await fetch('/api/user/locations', {
           headers: {
@@ -38,8 +40,34 @@ export default function Settings() {
       }
     };
 
-    fetchLocationsAndContainers();
+    fetchLocations();
   }, [session]);
+
+  const handleLocationChange = async (location) => {
+    if (selectedLocation?.id === location.id) {
+      setSelectedLocation(null);
+      setContainers([]);
+    } else {
+      setSelectedLocation(location);
+      setSelectedContainer(null);
+      try {
+        const response = await fetch(`/api/user/location/${location.id}/containers`, {
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setContainers(data.containers);
+        } else {
+          setMessage(data.message || 'Failed to fetch containers');
+        }
+      } catch (error) {
+        setMessage('Server error');
+        console.error({ error });
+      }
+    }
+  };
 
   const handleEditLocation = (location) => {
     setCurrentLocation(location);
@@ -77,6 +105,31 @@ export default function Settings() {
     setIsModalOpen(true);
   };
 
+  const handleDeleteContainer = async (container) => {
+    try {
+      const response = await fetch(
+        `/api/user/location/${selectedLocation.id}/container/${container.id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setContainers(data.containers);
+        setMessage('Container deleted successfully');
+      } else {
+        const data = await response.json();
+        setMessage(data.message || 'Failed to delete container');
+      }
+    } catch (error) {
+      setMessage('Server error');
+      console.error({ error });
+    }
+  };
+
   const handleCreateLocation = () => {
     setCurrentLocation(null);
     setEditName('');
@@ -88,7 +141,7 @@ export default function Settings() {
     setCurrentContainer(null);
     setEditName('');
     setModalTitle('Create Container');
-    setSelectedLocationForContainer(null); // Reset selected location
+    setSelectedLocationForContainer(selectedLocation?.id || null); // Ensure ID is set
     setIsModalOpen(true);
   };
 
@@ -98,81 +151,6 @@ export default function Settings() {
     setCurrentContainer(null);
     setEditName('');
     setSelectedLocationForContainer(null);
-  };
-
-  const confirmEditLocation = async () => {
-    if (!currentLocation) {
-      setMessage('Invalid location details');
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/user/location/${currentLocation.id}`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: editName,
-        }),
-      });
-
-      if (response.ok) {
-        const updatedLocation = await response.json();
-        setLocations(
-          locations.map((location) =>
-            location.id === currentLocation.id ? updatedLocation : location
-          )
-        );
-        closeModal();
-      } else {
-        const data = await response.json();
-        setMessage(data.message || 'Failed to update location');
-      }
-    } catch (error) {
-      setMessage('Server error');
-      console.error({ error });
-    }
-  };
-
-  const confirmEditContainer = async () => {
-    if (!currentContainer) {
-      setMessage('Invalid container details');
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `/api/user/location/${currentContainer.locationId}/container/${currentContainer.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${session.accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: editName,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const updatedContainer = await response.json();
-        setContainers(
-          containers.map((container) =>
-            container.id === currentContainer.id ? updatedContainer : container
-          )
-        );
-        closeModal();
-      } else {
-        const data = await response.json();
-        setMessage(data.message || 'Failed to update container');
-      }
-    } catch (error) {
-      setMessage('Server error');
-      console.error({ error });
-    }
   };
 
   const confirmCreateLocation = async () => {
@@ -194,12 +172,48 @@ export default function Settings() {
       });
 
       if (response.ok) {
-        const newLocation = await response.json();
-        setLocations([...locations, newLocation]);
+        const data = await response.json();
+        setLocations([...locations, data.location]);
         closeModal();
       } else {
         const data = await response.json();
         setMessage(data.message || 'Failed to create location');
+      }
+    } catch (error) {
+      setMessage('Server error');
+      console.error({ error });
+    }
+  };
+
+  const confirmEditLocation = async () => {
+    if (!currentLocation) {
+      setMessage('Invalid location details');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/user/location/${currentLocation.id}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: editName,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLocations(
+          locations.map((location) =>
+            location.id === currentLocation.id ? data.location : location
+          )
+        );
+        closeModal();
+      } else {
+        const data = await response.json();
+        setMessage(data.message || 'Failed to update location');
       }
     } catch (error) {
       setMessage('Server error');
@@ -229,12 +243,55 @@ export default function Settings() {
       );
 
       if (response.ok) {
-        const newContainer = await response.json();
-        setContainers([...containers, newContainer]);
-        closeModal();
+        const data = await response.json();
+        if (data.location.containers) {
+          setContainers([...containers, data.location.containers]);
+          closeModal();
+        } else {
+          setMessage('Failed to create container: Invalid response from server');
+        }
       } else {
         const data = await response.json();
         setMessage(data.message || 'Failed to create container');
+      }
+    } catch (error) {
+      setMessage('Server error');
+      console.error({ error });
+    }
+  };
+
+  const confirmEditContainer = async () => {
+    if (!currentContainer || !selectedLocation) {
+      setMessage('Invalid container details');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/user/location/${selectedLocation.id}/container/${currentContainer.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: editName,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setContainers(
+          containers.map((container) =>
+            container.id === currentContainer.id ? data.container : container
+          )
+        );
+        closeModal();
+      } else {
+        const data = await response.json();
+        setMessage(data.message || 'Failed to update container');
       }
     } catch (error) {
       setMessage('Server error');
@@ -246,6 +303,7 @@ export default function Settings() {
     <main className="min-h-screen p-8 pb-24">
       <section className="max-w-6xl mx-auto space-y-8">
         <h1 className="text-3xl md:text-4xl font-extrabold">Settings</h1>
+        <Link href="/dashboard" legacyBehavior>Back to Dashbaord</Link>
         {message && <p className="text-red-500">{message}</p>}
         <div className="flex justify-between">
           <button
@@ -262,6 +320,7 @@ export default function Settings() {
           </button>
         </div>
         <Suspense fallback={<div>Loading...</div>}>
+          {/* Locations Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white border border-gray-200">
               <thead>
@@ -275,7 +334,7 @@ export default function Settings() {
                   <tr
                     key={location.id}
                     className="hover:bg-gray-100 cursor-pointer"
-                    onClick={() => setSelectedLocation(location)}
+                    onClick={() => handleLocationChange(location)}
                   >
                     <td className="px-4 py-2 border-b">{location.name}</td>
                     <td className="px-4 py-2 border-b">
@@ -307,20 +366,66 @@ export default function Settings() {
               </tbody>
             </table>
           </div>
-          <div className="overflow-x-auto mt-8">
-            <table className="min-w-full bg-white border border-gray-200">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 border-b">Container Name</th>
-                  <th className="px-4 py-2 border-b">Location</th>
-                  <th className="px-4 py-2 border-b">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* Render containers here */}
-              </tbody>
-            </table>
-          </div>
+
+          {/* Containers Table */}
+          {selectedLocation && containers.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-2xl font-bold">
+                Containers in {selectedLocation.name}
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-2 border-b">Container Name</th>
+                      <th className="px-4 py-2 border-b">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {containers.map((container) => (
+                      <tr
+                        key={container.id}
+                        className="hover:bg-gray-100 cursor-pointer"
+                        onClick={() => {
+                          if (selectedContainer?.id === container.id) {
+                            setSelectedContainer(null);
+                          } else {
+                            setSelectedContainer(container);
+                          }
+                        }}
+                      >
+                        <td className="px-4 py-2 border-b">{container.name}</td>
+                        <td className="px-4 py-2 border-b">
+                          {selectedContainer?.id === container.id && (
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditContainer(container);
+                                }}
+                                className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteContainer(container);
+                                }}
+                                className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </Suspense>
       </section>
 
@@ -337,13 +442,15 @@ export default function Settings() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            modalTitle.includes('Location')
-              ? currentLocation
-                ? confirmEditLocation()
-                : confirmCreateLocation()
-              : currentContainer
-              ? confirmEditContainer()
-              : confirmCreateContainer();
+            if (modalTitle === 'Create Location') {
+              confirmCreateLocation();
+            } else if (modalTitle === 'Edit Location') {
+              confirmEditLocation();
+            } else if (modalTitle === 'Create Container') {
+              confirmCreateContainer();
+            } else if (modalTitle === 'Edit Container') {
+              confirmEditContainer();
+            }
           }}
         >
           <div className="mb-4">
@@ -362,7 +469,6 @@ export default function Settings() {
             />
           </div>
 
-          {/* Add location selector when creating a new container */}
           {modalTitle === 'Create Container' && (
             <div className="mb-4">
               <label
