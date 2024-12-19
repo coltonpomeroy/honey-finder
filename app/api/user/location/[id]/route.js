@@ -37,7 +37,7 @@ const getLocationById = async (locationId) => {
 
 export async function GET(req,params) {
   await connectMongo();
-  const token = await getToken({ req, secret });
+  const token = await getToken({ req, secret, secureCookie: true  });
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }

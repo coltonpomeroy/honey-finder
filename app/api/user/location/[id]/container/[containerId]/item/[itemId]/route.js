@@ -8,7 +8,7 @@ const secret = process.env.NEXTAUTH_SECRET;
 
 export async function DELETE(req, { params }) {
   await connectMongo();
-  const token = await getToken({ req, secret });
+  const token = await getToken({ req, secret, secureCookie: true  });
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
@@ -42,7 +42,7 @@ export async function DELETE(req, { params }) {
 
 export async function PUT(req, { params }) {
   await connectMongo();
-  const token = await getToken({ req, secret });
+  const token = await getToken({ req, secret, secureCookie: true  });
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }

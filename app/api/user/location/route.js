@@ -7,7 +7,7 @@ const secret = process.env.NEXTAUTH_SECRET;
 
 export async function POST(req) {
   await connectMongo();
-  const token = await getToken({ req, secret });
+  const token = await getToken({ req, secret, secureCookie: true });
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
@@ -30,7 +30,7 @@ export async function POST(req) {
 
 export async function GET(req) {
     await connectMongo();
-    const token = await getToken({ req, secret });
+    const token = await getToken({ req, secret, secureCookie: true });
     if (!token) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }

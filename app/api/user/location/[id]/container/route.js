@@ -8,12 +8,10 @@ const secret = process.env.NEXTAUTH_SECRET;
 
 export async function POST(req) {
   await connectMongo();
-  const token = await getToken({ req, secret });
+  const token = await getToken({ req, secret, secureCookie: true  });
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
-
-  console.log("Hello from POST container route");
 
   const body = await req.json(); // Parse the JSON body
   const { name, items, id } = body;
