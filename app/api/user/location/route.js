@@ -7,12 +7,17 @@ const secret = process.env.NEXTAUTH_SECRET;
 
 export async function POST(req) {
   await connectMongo();
-  const token = await getToken({ req, secret, secureCookie: true });
+  const token = process.env.NODE_ENV === 'development' ? 
+    await getToken({ req, secret })
+    : await getToken({ req, secret, secureCookie: true });
+  if (!token) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
   if (!token) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const { location } = await req.json();
+  const { name } = await req.json();
   const email = token.email;
 
   try {
@@ -20,11 +25,18 @@ export async function POST(req) {
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
-    user.storage.push(location);
+
+    // Create a new location with an empty containers array
+    const newLocation = { name, containers: [] };
+
+    // Add the new location to the user's storage
+    user.storage.push(newLocation);
     await user.save();
-    return NextResponse.json({ location: user.storage }, { status: 201 });
+
+    // Return the newly created location
+    return NextResponse.json({ location: newLocation }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ message: 'Server error', error }, { status: 500 });
+    return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
 }
 

@@ -20,10 +20,12 @@ export async function GET(req) {
     return NextResponse.json({ message: 'User not found' }, { status: 404 });
   }
 
-  const locations = user.storage.map(location => ({
-    id: location._id,
-    name: location.name,
-  }));
+  const locations = user.storage
+    .filter(location => location !== null)
+    .map(location => ({
+      id: location._id,
+      name: location.name,
+    }));
 
   return NextResponse.json({ locations }, { status: 200 });
 }
