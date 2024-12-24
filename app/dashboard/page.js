@@ -327,6 +327,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchProductDetails = async () => {
       if (scannedBarcode.length > 0) { // Fixed condition
+        setMessage('');
         try {
           const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${scannedBarcode}.json`);
           const data = await response.json();
@@ -336,7 +337,8 @@ export default function Dashboard() {
             setEditName(`${brand} - ${productName}`);
             setShowScanner(false);
           } else {
-            setMessage('Product not found');
+            setMessage('Product not found. Please enter manually.'); 
+            setShowScanner(false);
           }
         } catch (error) {
           setMessage('Error fetching product details');
@@ -500,6 +502,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <form onSubmit={(e) => { e.preventDefault(); modalTitle === 'Edit Item' ? confirmEdit() : confirmCreate(); }}>
+                { message && <p className="text-red-500">{message}</p> }
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
                     Item Name
