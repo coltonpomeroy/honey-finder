@@ -404,7 +404,7 @@ export default function Dashboard() {
                         </ol>
                       </div>
                       <div className="text-green-600 font-semibold">
-                        {recipe.costSavings}
+                        Food waste prevented: {recipe.costSavings}
                       </div>
                     </div>
                   ))}
@@ -424,6 +424,16 @@ export default function Dashboard() {
               >
                 <div>
                   <div>{item.name}</div>
+                  <div>{item.expirationDate}</div>
+                  {item.expiration && (
+                    <div className={`text-sm font-medium mt-1 ${
+                      new Date(item.expiration) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) 
+                        ? 'text-red-600' 
+                        : 'text-gray-500'
+                    }`}>
+                      Expires: {new Date(item.expiration).toLocaleDateString()}
+                    </div>
+                  )}
                   {showActions[item.item] && (
                     <div className="mt-2 flex space-x-2">
                       <button

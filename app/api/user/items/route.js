@@ -43,21 +43,40 @@ const getAllItemsForUser = async (userId) => {
         $project: {
           _id: 0,
           item: '$storage.containers.items._id',
-          name: '$storage.containers.items.name',
+          name: '$storage.containers.items.name', 
           quantity: '$storage.containers.items.quantity',
           expiration: '$storage.containers.items.expirationDate',
           locationId: '$storage._id',
           locationName: '$storage.name',
           containerId: '$storage.containers._id',
-          container: '$storage.containers.name',
-        },
+          container: '$storage.containers.name'
+        }
       },
+      {
+        $sort: {
+          // null values last, then sort by date ascending
+          expirationDate: 1
+        }
+      },
+      {
+        // Handle null expiration dates
+        $addFields: {
+          hasExpiration: {
+            $cond: [
+              { $eq: ["$expiration", null] },
+              1,
+              0
+            ]
+          }
+        }
+      },
+      {
+        $sort: {
+          hasExpiration: 1,
+          expiration: 1
+        }
+      }
     ]);
-    userItems.sort((a, b) => {
-      if (!a.expiration) return 1;
-      if (!b.expiration) return -1;
-      return new Date(a.expiration) - new Date(b.expiration);
-    });
 
     return userItems;
   } catch (error) {

@@ -49,7 +49,7 @@ export async function POST(req) {
   const allItems = await getAllItemsForUser(user._id);
 
   const prompt = `
-You are an AI chef. Your goal is to create delicious and practical recipe ideas using the provided ingredients, prioritizing those that are expiring soon. Focus on the items that will expire within the next three days and emphasize preventing food waste. Calculate the total cost savings by using these items. Use the provided estimated cost for each item to calculate the total cost savings.
+You are an AI chef. Your goal is to create delicious and practical recipe ideas using the provided ingredients, prioritizing those that are expiring soon. Focus on the items that have recently expired or will expire in the next seven days and emphasize preventing food waste. Do your best to create a delicious meal. Based on the brand and item, do your best to estimate the value of the expired or soon to expire items used in the recipe. The value should never be $0.00.
 
 ### Expiring Soon (Next 3 Days)
 ${allItems.map(item => `- **${item.name}**\n  - Expiration Date: ${item.expirationDate}\n  - Estimated Cost: $${item.estimatedCost ? item.estimatedCost.toFixed(2) : 'N/A'}`).join("\n")}
@@ -71,7 +71,7 @@ Example JSON format: DO NOT USE MARKDOWN
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a creative AI chef focused on helping users reduce food waste by using ingredients that are about to expire. You should recommend recipes where the food items go together well. It is very important that you provide a costSavings for each recipe, which is your best guess at how much it would cost to replace the food about to expire. IMPORTANT!! costSavings should always have a dollar and cents amount in the format of $x.xx....no other text. Also, next to any food about to expire within the next three days, append 'Expiring in {x} days'. Do not include any additional text or explanations. Only provide the JSON response." },
+        { role: "system", content: "You are a creative AI chef focused on helping users reduce food waste by using ingredients that are about to expire. You should recommend recipes where the food items go together well. It is very important that you provide a costSavings for each recipe, which is your best guess at how much it would cost to replace the food about to expire. Use the brand name and item to determine the potential of each item that is set to expire soon or has recently expired. costSavings is the value of all ingredients used. IMPORTANT!! costSavings should always have a dollar and cents amount in the format of $x.xx....no other text. Also, next to any food about to expire within the next three days, append 'Expiring in {x} days'. Do not include any additional text or explanations. Only provide the JSON response." },
         { role: "user", content: prompt },
       ],
     });
