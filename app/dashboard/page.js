@@ -120,6 +120,7 @@ export default function Dashboard() {
     setSelectedContainer('');
     setScannedBarcode('');
     setShowScanner(false);
+    setMessage('');
     if (scannerRef.current) {
       scannerRef.current.clear();
     }
