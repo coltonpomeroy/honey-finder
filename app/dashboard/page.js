@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [showActions, setShowActions] = useState({});
   const [recipes, setRecipes] = useState([]);
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
+  const [manualEntry, setManualEntry] = useState(false);
 
   useEffect(() => {
     if (!session) return;
@@ -493,6 +494,9 @@ export default function Dashboard() {
             {showScanner ? (
               <div className="mb-4">
                 <div id="scanner" style={{ width: '100%' }}></div>
+                <div className="flex justify-end mt-4">
+                  <button onClick={() => setShowScanner(false)} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Enter Manually</button>
+                </div>
               </div>
             ) : (
               <form onSubmit={(e) => { e.preventDefault(); modalTitle === 'Edit Item' ? confirmEdit() : confirmCreate(); }}>
