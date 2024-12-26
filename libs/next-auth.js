@@ -3,6 +3,8 @@ import EmailProvider from "next-auth/providers/email";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import config from "@/config";
 import connectMongo from "./mongo";
+import nodemailer from "nodemailer";
+import { customEmailTemplate } from "@/libs/customEmailTemplate";
 
 export const authOptions = {
   // Set any random key in .env.local
@@ -36,6 +38,19 @@ export const authOptions = {
             },
           },
           from: process.env.EMAIL_FROM,
+          sendVerificationRequest: async ({ identifier: email, url, provider }) => {
+            const { host } = new URL(url);
+            const transport = nodemailer.createTransport(provider.server);
+            const { text, html } = customEmailTemplate({ url, host, email });
+    
+            await transport.sendMail({
+              to: email,
+              from: provider.from,
+              subject: `Sign in to ${host}`,
+              text,
+              html,
+            });
+          },
         }),
         ]
       : []),
