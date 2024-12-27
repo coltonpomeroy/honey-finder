@@ -1,11 +1,15 @@
 "use client";
 import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Modal from '@/components/Modal';
 import Link from 'next/link';
 
 export default function Settings() {
   const { data: session } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [locations, setLocations] = useState([]);
   const [containers, setContainers] = useState([]);
   const [message, setMessage] = useState('');
@@ -42,6 +46,16 @@ export default function Settings() {
 
     fetchLocations();
   }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+
+    const setup = searchParams.get('setup');
+    if (setup === 'true' && session.user.name === null) {
+      setIsModalOpen(true);
+      setModalTitle('Welcome! Please enter your name');
+    }
+  }, [session, searchParams]);
 
   const handleLocationChange = async (location) => {
     if (selectedLocation?.id === location.id) {
@@ -299,11 +313,29 @@ export default function Settings() {
     }
   };
 
+  const handleNameSubmit = async () => {
+    try {
+      await fetch('/api/user/update', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: editName }),
+      });
+      setIsModalOpen(false);
+      setMessage('Name updated successfully');
+    } catch (error) {
+      console.error('Error updating name:', error);
+      setMessage('Failed to update name');
+    }
+  };
+
   return (
     <main className="min-h-screen p-8 pb-24">
       <section className="max-w-6xl mx-auto space-y-8">
         <h1 className="text-3xl md:text-4xl font-extrabold">Settings</h1>
-        <Link href="/dashboard" legacyBehavior>Back to Dashbaord</Link>
+        <Link href="/dashboard" legacyBehavior>Back to Dashboard</Link>
         {message && <p className="text-red-500">{message}</p>}
         <div className="flex justify-between">
           <button

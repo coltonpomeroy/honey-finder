@@ -5,6 +5,7 @@ import config from "@/config";
 import connectMongo from "./mongo";
 import nodemailer from "nodemailer";
 import { customEmailTemplate } from "@/libs/customEmailTemplate";
+import User from "@/models/User";
 
 export const authOptions = {
   // Set any random key in .env.local
@@ -62,20 +63,59 @@ export const authOptions = {
 
   
   callbacks: {
+    async signIn({ user, account, profile, email, credentials }) {
+      console.log("SIGN IN CALLBACK", { user, account, profile, email, credentials });
+      let existingUser = await User.findOne({ email: user.email });
+      console.log("EXISTING USER", { existingUser });
+      if (existingUser) {
+        if (existingUser.firstLogin) {
+          existingUser.firstLogin = false;
+          await existingUser.save();
+        }
+      } else {
+        // Create a new user if not found
+        const storage = [
+          {
+            name: "My Home",
+            containers: [
+              { name: "Refrigerator", items: [] },
+              { name: "Pantry", items: [] },
+            ],
+          },
+        ];
+        existingUser = new User({
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          createdAt: user.createdAt,
+          firstLogin: true,
+          setupCompleted: false,
+          storage,
+        });
+        await existingUser.save();
+      }
+      user.existingUser = existingUser;
+      return true;
+    },
     async jwt({ token, user, account }) {
-      // Add custom fields to the token
-      if (user) {
-        token.id = user.id; // User ID from database
-        token.email = user.email; // Email for API calls if needed
+      if (user?.existingUser) {
+        const existingUser = user.existingUser;
+        token.id = existingUser.id; // User ID from database
+        token.email = existingUser.email; // Email for API calls if needed
         token.accessToken = account?.access_token; // OAuth access token if needed
+        token.firstLogin = existingUser.firstLogin; // Track first login
+        token.setupCompleted = existingUser.setupCompleted; // Track setup completion
       }
       return token;
     },
     async session({ session, token }) {
       // Attach the token to the session
+      console.log("SESSION CALLBACK", session, token);
       if (session?.user) {
         session.user.id = token.id;
         session.user.accessToken = token.accessToken; // Optional, for frontend use
+        session.user.firstLogin = token.firstLogin; // Track first login
+        session.user.setupCompleted = token.setupCompleted; // Track setup completion
       }
       return session;
     },

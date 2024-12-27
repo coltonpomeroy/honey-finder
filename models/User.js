@@ -1,17 +1,16 @@
 import mongoose from "mongoose";
-// import toJSON from "./plugins/toJSON";
 
 // ITEM SCHEMA
 const itemSchema = new mongoose.Schema({
   name: { type: String, required: true },
   quantity: { type: Number, required: true },
-  expirationDate: { type: Date }, // This field is already optional
+  expirationDate: { type: Date },
   image: { type: String },
 }, { _id: true, timestamps: true });
 
 // CONTAINER SCHEMA
 const containerSchema = new mongoose.Schema({
-  name: { type: String, required: true,  },
+  name: { type: String, required: true },
   items: [itemSchema],
 }, { _id: true });
 
@@ -54,6 +53,14 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     storage: [storageLocationSchema],
+    setupCompleted: {
+      type: Boolean,
+      default: false,
+    },
+    firstLogin: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

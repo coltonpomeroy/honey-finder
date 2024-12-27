@@ -2,12 +2,14 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import ButtonAccount from "@/components/ButtonAccount";
 import Modal from "@/components/Modal";
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
 export default function Dashboard() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [items, setItems] = useState([]);
   const [locations, setLocations] = useState([]);
   const [containers, setContainers] = useState([]);
@@ -26,7 +28,7 @@ export default function Dashboard() {
   const [showActions, setShowActions] = useState({});
   const [recipes, setRecipes] = useState([]);
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
-  const [manualEntry, setManualEntry] = useState(false);
+
 
   useEffect(() => {
     if (!session) return;
@@ -52,7 +54,17 @@ export default function Dashboard() {
     };
 
     fetchItems();
-  }, [session]);
+
+    const fetchUser = async () => {
+      const response = await fetch('/api/user')
+      const data = await response.json()
+      if (!data.setupCompleted) {
+        router.push('/settings?setup=true');
+      }
+    }
+    fetchUser();
+    
+  }, [session, router]);
 
   useEffect(() => {
     if (!session) return;
