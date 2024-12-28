@@ -354,235 +354,232 @@ export default function Settings() {
   };
 
   return (
-    <main className="min-h-screen p-8 pb-24">
-      <section className="max-w-6xl mx-auto space-y-8">
-        <h1 className="text-3xl md:text-4xl font-extrabold">Settings</h1>
-        <Link href="/dashboard" legacyBehavior>Back to Dashboard</Link>
-        {message && <p className="text-red-500">{message}</p>}
-        <div className="flex justify-between">
-          <button
-            onClick={handleCreateLocation}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Create Location
-          </button>
-          <button
-            onClick={handleCreateContainer}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Create Container
-          </button>
-        </div>
-        <Suspense fallback={<div>Loading...</div>}>
-          {/* Locations Table */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 border-b">Location Name</th>
-                  <th className="px-4 py-2 border-b">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {locations.map((location) => (
-                  <tr
-                    key={location.id}
-                    className="hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleLocationChange(location)}
-                  >
-                    <td className="px-4 py-2 border-b">{location.name}</td>
-                    <td className="px-4 py-2 border-b">
-                      {selectedLocation?.id === location.id && (
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditLocation(location);
-                            }}
-                            className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteLocation(location);
-                            }}
-                            className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Containers Table */}
-          {selectedLocation && containers.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-2xl font-bold">
-                Containers in {selectedLocation.name}
-              </h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border border-gray-200">
-                  <thead>
-                    <tr>
-                      <th className="px-4 py-2 border-b">Container Name</th>
-                      <th className="px-4 py-2 border-b">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {containers.map((container) => (
-                      <tr
-                        key={container.id}
-                        className="hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          if (selectedContainer?.id === container.id) {
-                            setSelectedContainer(null);
-                          } else {
-                            setSelectedContainer(container);
-                          }
-                        }}
-                      >
-                        <td className="px-4 py-2 border-b">{container.name}</td>
-                        <td className="px-4 py-2 border-b">
-                          {selectedContainer?.id === container.id && (
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditContainer(container);
-                                }}
-                                className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteContainer(container);
-                                }}
-                                className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </Suspense>
-      </section>
-
-      <Suspense fallback={<div>Loading...</div>}>
-        <Modal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">{modalTitle}</h2>
+    <Suspense fallback={<div>Loading...</div>}>
+      <main className="min-h-screen p-8 pb-24">
+        <section className="max-w-6xl mx-auto space-y-8">
+          <h1 className="text-3xl md:text-4xl font-extrabold">Settings</h1>
+          <Link href="/dashboard" legacyBehavior>Back to Dashboard</Link>
+          {message && <p className="text-red-500">{message}</p>}
+          <div className="flex justify-between">
             <button
-              className="btn btn-square btn-ghost btn-sm"
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleCreateLocation}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              {/* Close icon */}
+              Create Location
+            </button>
+            <button
+              onClick={handleCreateContainer}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Create Container
             </button>
           </div>
-          {!session?.user?.name ? (
-            <div>
-              <label htmlFor="userName" className="block text-sm font-medium text-gray-700">
-                Name
-              </label>
-              <input
-                type="text"
-                id="userName"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-              <div className="flex justify-end mt-4">
-                <button onClick={handleNameSubmit} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                  Submit
-                </button>
-              </div>
+            {/* Locations Table */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border border-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 border-b">Location Name</th>
+                    <th className="px-4 py-2 border-b">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {locations.map((location) => (
+                    <tr
+                      key={location.id}
+                      className="hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleLocationChange(location)}
+                    >
+                      <td className="px-4 py-2 border-b">{location.name}</td>
+                      <td className="px-4 py-2 border-b">
+                        {selectedLocation?.id === location.id && (
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditLocation(location);
+                              }}
+                              className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteLocation(location);
+                              }}
+                              className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ) : (
-            <div className="mb-4">
-              <iframe
-                width="100%"
-                height="auto"
-                src="https://www.youtube.com/embed/ZXsQAXx_ao0"
-                title="Welcome to PantryPal"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
+
+            {/* Containers Table */}
+            {selectedLocation && containers.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold">
+                  Containers in {selectedLocation.name}
+                </h2>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full bg-white border border-gray-200">
+                    <thead>
+                      <tr>
+                        <th className="px-4 py-2 border-b">Container Name</th>
+                        <th className="px-4 py-2 border-b">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {containers.map((container) => (
+                        <tr
+                          key={container.id}
+                          className="hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            if (selectedContainer?.id === container.id) {
+                              setSelectedContainer(null);
+                            } else {
+                              setSelectedContainer(container);
+                            }
+                          }}
+                        >
+                          <td className="px-4 py-2 border-b">{container.name}</td>
+                          <td className="px-4 py-2 border-b">
+                            {selectedContainer?.id === container.id && (
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditContainer(container);
+                                  }}
+                                  className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteContainer(container);
+                                  }}
+                                  className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+        </section>
+          <Modal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">{modalTitle}</h2>
+              <button
+                className="btn btn-square btn-ghost btn-sm"
+                onClick={() => setIsModalOpen(false)}
+              >
+                {/* Close icon */}
+              </button>
+            </div>
+            {!session?.user?.name ? (
+              <div>
+                <label htmlFor="userName" className="block text-sm font-medium text-gray-700">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  id="userName"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+                <div className="flex justify-end mt-4">
+                  <button onClick={handleNameSubmit} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Submit
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-4">
+                <iframe
+                  width="100%"
+                  height="auto"
+                  src="https://www.youtube.com/embed/ZXsQAXx_ao0"
+                  title="Welcome to PantryPal"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+                <div className="flex justify-end mt-4">
+                  <button
+                    onClick={handleFinish}
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    Finish
+                  </button>
+                </div>
+              </div>
+            )}
+            {currentLocation && !session.user.name && (
               <div className="flex justify-end mt-4">
                 <button
-                  onClick={handleFinish}
+                  onClick={confirmEditLocation}
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                 >
-                  Finish
+                  Save
+                </button>
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
+                >
+                  Cancel
                 </button>
               </div>
-            </div>
-          )}
-          {currentLocation && !session.user.name && (
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={confirmEditLocation}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Save
-              </button>
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-          {currentContainer && !session.user.name && (
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={confirmEditContainer}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Save
-              </button>
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-          {!currentLocation && !currentContainer && !session.user.name && (
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={confirmCreateLocation}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Save
-              </button>
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-        </Modal>
-      </Suspense>
-    </main>
+            )}
+            {currentContainer && !session.user.name && (
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={confirmEditContainer}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+            {!currentLocation && !currentContainer && !session.user.name && (
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={confirmCreateLocation}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </Modal>
+      </main>
+    </Suspense>
   );
 }
