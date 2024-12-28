@@ -56,10 +56,8 @@ export const authOptions = {
         ]
       : []),
   ],
-  // New users will be saved in Database (MongoDB Atlas). Each user (model) has some fields like name, email, image, etc..
-  // Requires a MongoDB database. Set MONOGODB_URI env variable.
-  // Learn more about the model type: https://next-auth.js.org/v3/adapters/models
-  ...(connectMongo && { adapter: MongoDBAdapter(connectMongo) }),
+
+  adapter: MongoDBAdapter(connectMongo),
 
   
   callbacks: {
