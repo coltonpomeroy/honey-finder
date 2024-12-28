@@ -64,9 +64,7 @@ export const authOptions = {
   
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
-      console.log("SIGN IN CALLBACK", { user, account, profile, email, credentials });
       let existingUser = await User.findOne({ email: user.email });
-      console.log("EXISTING USER", { existingUser });
       if (existingUser) {
         if (existingUser.firstLogin) {
           existingUser.firstLogin = false;
@@ -110,7 +108,6 @@ export const authOptions = {
     },
     async session({ session, token }) {
       // Attach the token to the session
-      console.log("SESSION CALLBACK", session, token);
       if (session?.user) {
         session.user.id = token.id;
         session.user.accessToken = token.accessToken; // Optional, for frontend use

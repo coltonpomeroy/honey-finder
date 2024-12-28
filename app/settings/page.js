@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Modal from '@/components/Modal';
 import Link from 'next/link';
+import { set } from 'mongoose';
 
 export default function Settings() {
   const { data: session } = useSession();
@@ -21,6 +22,8 @@ export default function Settings() {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedContainer, setSelectedContainer] = useState(null);
   const [selectedLocationForContainer, setSelectedLocationForContainer] = useState(null);
+  const [isCollectingName, setIsCollectingName] = useState(false);
+  const [userName, setUserName] = useState(null);
 
   useEffect(() => {
     if (!session) return;
@@ -53,6 +56,7 @@ export default function Settings() {
     const setup = searchParams.get('setup');
     if (setup === 'true' && !session.user.name) {
       setIsModalOpen(true);
+      setIsCollectingName(true);
       setModalTitle('Welcome! Please enter your name');
     } else if (setup === 'true') {
       setIsModalOpen(true);
@@ -60,9 +64,13 @@ export default function Settings() {
     }
   }, [session, searchParams]);
 
+  useEffect(() => {
+    setModalTitle(`Welcome to PantryPal, ${userName}!`);
+  },[userName]);
+
   const handleNameSubmit = async () => {
     try {
-      await fetch('/api/user/update', {
+      const response = await fetch('/api/user', {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${session.accessToken}`,
@@ -70,7 +78,10 @@ export default function Settings() {
         },
         body: JSON.stringify({ name: editName }),
       });
-      setIsModalOpen(false);
+      const data = await response.json();
+      // setIsModalOpen(false);
+      setUserName(data.name);
+      setIsCollectingName(false);
       setMessage('Name updated successfully');
     } catch (error) {
       console.error('Error updating name:', error);
@@ -491,7 +502,7 @@ export default function Settings() {
                 {/* Close icon */}
               </button>
             </div>
-            {!session?.user?.name ? (
+            {!session?.user?.name && !userName ? (
               <div>
                 <label htmlFor="userName" className="block text-sm font-medium text-gray-700">
                   Name
@@ -530,7 +541,7 @@ export default function Settings() {
                 </div>
               </div>
             )}
-            {currentLocation && !session.user.name && (
+            {currentLocation && !session?.user?.name && (
               <div className="flex justify-end mt-4">
                 <button
                   onClick={confirmEditLocation}
@@ -546,7 +557,7 @@ export default function Settings() {
                 </button>
               </div>
             )}
-            {currentContainer && !session.user.name && (
+            {currentContainer && !session?.user?.name && !userName && (
               <div className="flex justify-end mt-4">
                 <button
                   onClick={confirmEditContainer}
@@ -562,7 +573,7 @@ export default function Settings() {
                 </button>
               </div>
             )}
-            {!currentLocation && !currentContainer && !session.user.name && (
+            {!currentLocation && !currentContainer && !isCollectingName && !session?.user?.name && ! userName && (
               <div className="flex justify-end mt-4">
                 <button
                   onClick={confirmCreateLocation}
