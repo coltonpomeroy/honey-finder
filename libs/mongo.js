@@ -1,33 +1,59 @@
 import { MongoClient } from "mongodb";
 
-// This lib is use just to connect to the database in next-auth.
-// We don't use it anywhere else in the API routes—we use mongoose.js instead (to be able to use models)
-// See /libs/nextauth.js file.
-
 const uri = process.env.MONGODB_URI;
-const options = {};
+const options = {
+  maxPoolSize: 10,
+  minPoolSize: 5,
+  retryWrites: true,
+  retryReads: true,
+  connectTimeoutMS: 15000,
+  socketTimeoutMS: 15000,
+  serverSelectionTimeoutMS: 15000,
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+};
 
 let client;
 let clientPromise;
 
 if (!uri) {
   console.group("⚠️ MONGODB_URI missing from .env");
-  console.error(
-    "It's not mandatory but a database is required for Magic Links."
-  );
-  console.error(
-    "If you don't need it, remove the code from /libs/next-auth.js (see connectMongo())"
-  );
+  console.error("Database connection URI is required for authentication");
+  console.error("Please add MONGODB_URI to your environment variables");
   console.groupEnd();
-} else if (process.env.NODE_ENV === "development") {
+  throw new Error("Please add MONGODB_URI to environment variables");
+} 
+
+// Add debug logging in production
+if (process.env.NODE_ENV === "production") {
+  console.log("Attempting MongoDB connection...");
+}
+
+if (process.env.NODE_ENV === "development") {
   if (!global._mongoClientPromise) {
     client = new MongoClient(uri, options);
-    global._mongoClientPromise = client.connect();
+    global._mongoClientPromise = client.connect()
+      .then(client => {
+        console.log(`MongoDB Connected: ${client.db().databaseName}`);
+        return client;
+      })
+      .catch(error => {
+        console.error("MongoDB connection error:", error);
+        throw error;
+      });
   }
   clientPromise = global._mongoClientPromise;
 } else {
   client = new MongoClient(uri, options);
-  clientPromise = client.connect();
+  clientPromise = client.connect()
+    .then(client => {
+      console.log(`MongoDB Connected: ${client.db().databaseName}`);
+      return client;
+    })
+    .catch(error => {
+      console.error("MongoDB connection error:", error);
+      throw error;
+    });
 }
 
 export default clientPromise;
