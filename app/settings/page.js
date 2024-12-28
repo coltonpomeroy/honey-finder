@@ -51,7 +51,6 @@ export default function Settings() {
     if (!session) return;
 
     const setup = searchParams.get('setup');
-    console.log({ setup, name: session.user.name });
     if (setup === 'true' && !session.user.name) {
       setIsModalOpen(true);
       setModalTitle('Welcome! Please enter your name');
@@ -484,104 +483,106 @@ export default function Settings() {
         </Suspense>
       </section>
 
-      <Modal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">{modalTitle}</h2>
-          <button
-            className="btn btn-square btn-ghost btn-sm"
-            onClick={() => setIsModalOpen(false)}
-          >
-            {/* Close icon */}
-          </button>
-        </div>
-        {!session?.user?.name ? (
-          <div>
-            <label htmlFor="userName" className="block text-sm font-medium text-gray-700">
-              Name
-            </label>
-            <input
-              type="text"
-              id="userName"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-            <div className="flex justify-end mt-4">
-              <button onClick={handleNameSubmit} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                Submit
-              </button>
-            </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Modal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">{modalTitle}</h2>
+            <button
+              className="btn btn-square btn-ghost btn-sm"
+              onClick={() => setIsModalOpen(false)}
+            >
+              {/* Close icon */}
+            </button>
           </div>
-        ) : (
-          <div className="mb-4">
-            <iframe
-              width="100%"
-              height="auto"
-              src="https://www.youtube.com/embed/ZXsQAXx_ao0"
-              title="Welcome to PantryPal"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+          {!session?.user?.name ? (
+            <div>
+              <label htmlFor="userName" className="block text-sm font-medium text-gray-700">
+                Name
+              </label>
+              <input
+                type="text"
+                id="userName"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+              <div className="flex justify-end mt-4">
+                <button onClick={handleNameSubmit} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  Submit
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-4">
+              <iframe
+                width="100%"
+                height="auto"
+                src="https://www.youtube.com/embed/ZXsQAXx_ao0"
+                title="Welcome to PantryPal"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={handleFinish}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Finish
+                </button>
+              </div>
+            </div>
+          )}
+          {currentLocation && !session.user.name && (
             <div className="flex justify-end mt-4">
               <button
-                onClick={handleFinish}
+                onClick={confirmEditLocation}
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
               >
-                Finish
+                Save
+              </button>
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
+              >
+                Cancel
               </button>
             </div>
-          </div>
-        )}
-        {currentLocation && !session.user.name && (
-          <div className="flex justify-end mt-4">
-            <button
-              onClick={confirmEditLocation}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Save
-            </button>
-            <button
-              onClick={closeModal}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-        {currentContainer && !session.user.name && (
-          <div className="flex justify-end mt-4">
-            <button
-              onClick={confirmEditContainer}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Save
-            </button>
-            <button
-              onClick={closeModal}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-        {!currentLocation && !currentContainer && !session.user.name && (
-          <div className="flex justify-end mt-4">
-            <button
-              onClick={confirmCreateLocation}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Save
-            </button>
-            <button
-              onClick={closeModal}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-      </Modal>
+          )}
+          {currentContainer && !session.user.name && (
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={confirmEditContainer}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Save
+              </button>
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+          {!currentLocation && !currentContainer && !session.user.name && (
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={confirmCreateLocation}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Save
+              </button>
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </Modal>
+      </Suspense>
     </main>
   );
 }
