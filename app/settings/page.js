@@ -51,11 +51,33 @@ export default function Settings() {
     if (!session) return;
 
     const setup = searchParams.get('setup');
-    if (setup === 'true' && session.user.name === null) {
+    console.log({ setup, name: session.user.name });
+    if (setup === 'true' && !session.user.name) {
       setIsModalOpen(true);
       setModalTitle('Welcome! Please enter your name');
+    } else if (setup === 'true') {
+      setIsModalOpen(true);
+      setModalTitle(`Welcome to PantryPal, ${session.user.name}!`);
     }
   }, [session, searchParams]);
+
+  const handleNameSubmit = async () => {
+    try {
+      await fetch('/api/user/update', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: editName }),
+      });
+      setIsModalOpen(false);
+      setMessage('Name updated successfully');
+    } catch (error) {
+      console.error('Error updating name:', error);
+      setMessage('Failed to update name');
+    }
+  };
 
   const handleLocationChange = async (location) => {
     if (selectedLocation?.id === location.id) {
@@ -157,6 +179,24 @@ export default function Settings() {
     setModalTitle('Create Container');
     setSelectedLocationForContainer(selectedLocation?.id || null); // Ensure ID is set
     setIsModalOpen(true);
+  };
+
+  const handleFinish = async () => {
+    try {
+      await fetch('/api/user', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ setupCompleted: true }),
+      });
+      setIsModalOpen(false);
+      setMessage('Setup completed successfully');
+    } catch (error) {
+      console.error('Error completing setup:', error);
+      setMessage('Failed to complete setup');
+    }
   };
 
   const closeModal = () => {
@@ -313,24 +353,6 @@ export default function Settings() {
     }
   };
 
-  const handleNameSubmit = async () => {
-    try {
-      await fetch('/api/user/update', {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: editName }),
-      });
-      setIsModalOpen(false);
-      setMessage('Name updated successfully');
-    } catch (error) {
-      console.error('Error updating name:', error);
-      setMessage('Failed to update name');
-    }
-  };
-
   return (
     <main className="min-h-screen p-8 pb-24">
       <section className="max-w-6xl mx-auto space-y-8">
@@ -466,84 +488,98 @@ export default function Settings() {
           <h2 className="text-xl font-bold">{modalTitle}</h2>
           <button
             className="btn btn-square btn-ghost btn-sm"
-            onClick={closeModal}
+            onClick={() => setIsModalOpen(false)}
           >
             {/* Close icon */}
           </button>
         </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (modalTitle === 'Create Location') {
-              confirmCreateLocation();
-            } else if (modalTitle === 'Edit Location') {
-              confirmEditLocation();
-            } else if (modalTitle === 'Create Container') {
-              confirmCreateContainer();
-            } else if (modalTitle === 'Edit Container') {
-              confirmEditContainer();
-            }
-          }}
-        >
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="name"
-            >
+        {!session?.user?.name ? (
+          <div>
+            <label htmlFor="userName" className="block text-sm font-medium text-gray-700">
               Name
             </label>
             <input
               type="text"
-              id="name"
+              id="userName"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
-          </div>
-
-          {modalTitle === 'Create Container' && (
-            <div className="mb-4">
-              <label
-                htmlFor="location"
-                className="block text-gray-700 text-sm font-bold mb-2"
-              >
-                Select Location
-              </label>
-              <select
-                id="location"
-                value={selectedLocationForContainer || ''}
-                onChange={(e) =>
-                  setSelectedLocationForContainer(e.target.value)
-                }
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              >
-                <option value="" disabled>
-                  -- Select a Location --
-                </option>
-                {locations.map((location) => (
-                  <option key={location.id} value={location.id}>
-                    {location.name}
-                  </option>
-                ))}
-              </select>
+            <div className="flex justify-end mt-4">
+              <button onClick={handleNameSubmit} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                Submit
+              </button>
             </div>
-          )}
-
-          <div className="flex justify-end">
+          </div>
+        ) : (
+          <div className="mb-4">
+            <iframe
+              width="100%"
+              height="auto"
+              src="https://www.youtube.com/embed/ZXsQAXx_ao0"
+              title="Welcome to PantryPal"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={handleFinish}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Finish
+              </button>
+            </div>
+          </div>
+        )}
+        {currentLocation && !session.user.name && (
+          <div className="flex justify-end mt-4">
             <button
-              onClick={closeModal}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 mr-2"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
+              onClick={confirmEditLocation}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Save
             </button>
+            <button
+              onClick={closeModal}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
+            >
+              Cancel
+            </button>
           </div>
-        </form>
+        )}
+        {currentContainer && !session.user.name && (
+          <div className="flex justify-end mt-4">
+            <button
+              onClick={confirmEditContainer}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Save
+            </button>
+            <button
+              onClick={closeModal}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+        {!currentLocation && !currentContainer && !session.user.name && (
+          <div className="flex justify-end mt-4">
+            <button
+              onClick={confirmCreateLocation}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Save
+            </button>
+            <button
+              onClick={closeModal}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </Modal>
     </main>
   );

@@ -21,3 +21,24 @@ export async function GET(req) {
 
   return NextResponse.json( user, { status: 200 });
 }
+
+export async function PUT(req) {
+  await connectMongo();
+  const token = process.env.NODE_ENV === 'development' ? 
+    await getToken({ req, secret })
+    : await getToken({ req, secret, secureCookie: true });
+  if (!token) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const user = await User.findOne({ email: token.email });
+  if (!user) {
+    return NextResponse.json({ message: 'User not found' }, { status: 404 });
+  }
+
+  const body = await req.json();
+  Object.assign(user, body);
+  await user.save();
+
+  return NextResponse.json(user, { status: 200 });
+}
