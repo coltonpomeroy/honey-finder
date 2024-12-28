@@ -1,11 +1,13 @@
 import GoogleProvider from "next-auth/providers/google";
 import EmailProvider from "next-auth/providers/email";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
+import mongoose from "mongoose";
 import config from "@/config";
 import connectMongo from "./mongo";
 import nodemailer from "nodemailer";
 import { customEmailTemplate } from "@/libs/customEmailTemplate";
 import User from "@/models/User";
+import clientPromise from "./mongo";
 
 export const authOptions = {
   // Set any random key in .env.local
@@ -57,7 +59,7 @@ export const authOptions = {
       : []),
   ],
 
-  adapter: MongoDBAdapter(connectMongo),
+  adapter: MongoDBAdapter(clientPromise),
 
   
   callbacks: {
@@ -66,6 +68,10 @@ export const authOptions = {
       
       const maxRetries = 3;
       let retryCount = 0;
+
+      if (mongoose.connection.readyState !== 1) {
+        await mongoose.connect(process.env.MONGODB_URI);
+      }
       
       while (retryCount < maxRetries) {
         try {
