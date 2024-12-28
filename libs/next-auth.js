@@ -34,27 +34,51 @@ export const authOptions = {
         EmailProvider({
           server: {
             host: process.env.EMAIL_SERVER_HOST,
-            port: process.env.EMAIL_SERVER_PORT,
+            port: Number(process.env.EMAIL_SERVER_PORT),
             auth: {
               user: process.env.EMAIL_SERVER_USER,
               pass: process.env.EMAIL_SERVER_PASSWORD,
             },
+            secure: false,
+            debug: true,
+            logger: true
           },
           from: process.env.EMAIL_FROM,
           sendVerificationRequest: async ({ identifier: email, url, provider }) => {
-            const { host } = new URL(url);
-            const transport = nodemailer.createTransport(provider.server);
-            const { text, html } = customEmailTemplate({ url, host, email });
-    
-            await transport.sendMail({
-              to: email,
-              from: provider.from,
-              subject: `Sign in to ${host}`,
-              text,
-              html,
-            });
+            try {
+              // Test connection first
+              const transport = nodemailer.createTransport({
+                ...provider.server,
+                tls: {
+                  ciphers: 'SSLv3',
+                  rejectUnauthorized: false
+                }
+              });
+              await transport.verify();
+              console.log('SMTP connection verified');
+        
+              const { host } = new URL(url);
+              const { text, html } = customEmailTemplate({ url, host, email });
+        
+              const result = await transport.sendMail({
+                to: email,
+                from: provider.from,
+                subject: `Sign in to ${host}`,
+                text,
+                html,
+              });
+        
+              console.log('Email sent successfully:', result);
+            } catch (error) {
+              console.error('Detailed email error:', {
+                code: error.code,
+                message: error.message,
+                stack: error.stack
+              });
+              throw error;
+            }
           },
-        }),
+        })
         ]
       : []),
   ],
