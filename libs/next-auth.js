@@ -61,7 +61,8 @@ export const authOptions = {
 
   
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
+    async signIn({ user}) {
+      console.log({ SIGNIN_USER: user });
       let existingUser = await User.findOne({ email: user.email });
       if (existingUser) {
         if (existingUser.firstLogin) {
