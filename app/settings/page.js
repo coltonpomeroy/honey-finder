@@ -193,6 +193,7 @@ export default function Settings() {
       });
       setIsModalOpen(false);
       setMessage('Setup completed successfully');
+      router.push('/dashboard');
     } catch (error) {
       console.error('Error completing setup:', error);
       setMessage('Failed to complete setup');
