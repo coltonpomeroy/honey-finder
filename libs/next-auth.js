@@ -61,38 +61,63 @@ export const authOptions = {
 
   
   callbacks: {
-    async signIn({ user}) {
+    async signIn({ user }) {
       console.log({ SIGNIN_USER: user });
-      let existingUser = await User.findOne({ email: user.email });
-      if (existingUser) {
-        if (existingUser.firstLogin) {
-          existingUser.firstLogin = false;
-          await existingUser.save();
+      
+      const maxRetries = 3;
+      let retryCount = 0;
+      
+      while (retryCount < maxRetries) {
+        try {
+          let existingUser = await User.findOne({ email: user.email })
+            .maxTimeMS(60000) // 5 second timeout
+            .exec();
+    
+          if (existingUser) {
+            if (existingUser.firstLogin) {
+              existingUser.firstLogin = false;
+              await existingUser.save();
+            }
+          } else {
+            const storage = [
+              {
+                name: "My Home",
+                containers: [
+                  { name: "Refrigerator", items: [] },
+                  { name: "Pantry", items: [] },
+                ],
+              },
+            ];
+            existingUser = new User({
+              name: user.name,
+              email: user.email,
+              image: user.image,
+              createdAt: user.createdAt,
+              firstLogin: true,
+              setupCompleted: false,
+              storage,
+            });
+            await existingUser.save();
+          }
+          
+          user.existingUser = existingUser;
+          return true;
+          
+        } catch (error) {
+          console.error(`Attempt ${retryCount + 1} failed:`, error);
+          retryCount++;
+          
+          if (retryCount === maxRetries) {
+            console.error('Max retries reached. Authentication failed.');
+            return false;
+          }
+          
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
         }
-      } else {
-        // Create a new user if not found
-        const storage = [
-          {
-            name: "My Home",
-            containers: [
-              { name: "Refrigerator", items: [] },
-              { name: "Pantry", items: [] },
-            ],
-          },
-        ];
-        existingUser = new User({
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          createdAt: user.createdAt,
-          firstLogin: true,
-          setupCompleted: false,
-          storage,
-        });
-        await existingUser.save();
       }
-      user.existingUser = existingUser;
-      return true;
+      
+      return false;
     },
     async jwt({ token, user, account }) {
       if (user?.existingUser) {

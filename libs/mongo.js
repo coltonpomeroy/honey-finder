@@ -6,9 +6,9 @@ const options = {
   minPoolSize: 5,
   retryWrites: true,
   retryReads: true,
-  connectTimeoutMS: 15000,
-  socketTimeoutMS: 15000,
-  serverSelectionTimeoutMS: 15000,
+  connectTimeoutMS: 60000,
+  socketTimeoutMS: 60000,
+  serverSelectionTimeoutMS: 60000,
   useNewUrlParser: true,
   useUnifiedTopology: true
 };
