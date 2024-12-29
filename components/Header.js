@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import ButtonSignin from "./ButtonSignin";
-import logo from "@/app/honey-finder.webp";
+import logo from "@/app/pantry-paul-192.png";
 import config from "@/config";
 
 const links = [
@@ -49,7 +49,7 @@ const Header = () => {
             href="/"
             title={`${config.appName} hompage`}
           >
-            {/* <Image
+            <Image
               src={logo}
               alt={`${config.appName} logo`}
               className="w-8"
@@ -57,7 +57,7 @@ const Header = () => {
               priority={true}
               width={32}
               height={32}
-            /> */}
+            />
             <span className="font-extrabold text-lg">{config.appName}</span>
           </Link>
         </div>
@@ -116,15 +116,15 @@ const Header = () => {
               title={`${config.appName} hompage`}
               href="/"
             >
-              {/* <Image
-                src={logo}
-                alt={`${config.appName} logo`}
-                className="w-8"
-                placeholder="blur"
-                priority={true}
-                width={32}
-                height={32}
-              /> */}
+              <Image
+              src={logo}
+              alt={`${config.appName} logo`}
+              className="w-8"
+              placeholder="blur"
+              priority={true}
+              width={32}
+              height={32}
+            />
               <span className="font-extrabold text-lg">{config.appName}</span>
             </Link>
             <button
