@@ -55,11 +55,11 @@ const userSchema = new mongoose.Schema(
     storage: [storageLocationSchema],
     setupCompleted: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     firstLogin: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   {
