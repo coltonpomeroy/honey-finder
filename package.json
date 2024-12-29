@@ -39,7 +39,8 @@
     "react-qr-barcode-scanner": "^2.0.0",
     "react-syntax-highlighter": "^15.5.0",
     "react-tooltip": "^5.26.3",
-    "stripe": "^13.11.0"
+    "stripe": "^13.11.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",

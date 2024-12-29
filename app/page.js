@@ -8,6 +8,8 @@ import FAQ from "@/components/FAQ";
 import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 
+import { subscribeUser, unsubscribeUser, sendNotification } from './actions'
+
 export default function Home() {
   return (
     <>
