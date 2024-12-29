@@ -1,5 +1,5 @@
 'use server';
- 
+import 'dotenv/config'; 
 import webpush from 'web-push';
  
 webpush.setVapidDetails(
