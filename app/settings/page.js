@@ -10,6 +10,7 @@ import CreateLocationModal from './CreateLocationModal';
 import CreateContainerModal from './CreateContainerModal';
 import { set } from 'mongoose';
 import EditLocationModal from './EditLocationModal';
+import EditContainerModal from './EditContainerModal';
 
 export default function Settings() {
   const { data: session } = useSession();
@@ -31,6 +32,7 @@ export default function Settings() {
   const [isCreateLocationModalOpen, setIsCreateLocationModalOpen] = useState(false);
   const [isCreateContainerModalOpen, setIsCreateContainerModalOpen] = useState(false);
   const [isEditLocationModalOpen, setIsEditLocationModalOpen] = useState(false);
+  const [isEditContainerModalOpen, setIsEditContainerModalOpen] = useState(false);
 
   useEffect(() => {
     if (!session) return;
@@ -78,26 +80,24 @@ export default function Settings() {
     }
   };
 
-  const handleNameSubmit = async () => {
+  const fetchContainers = async (locationId) => {
     try {
-      const response = await fetch('/api/user', {
-        method: 'PUT',
+      const response = await fetch(`/api/user/location/${locationId}/containers`, {
         headers: {
           Authorization: `Bearer ${session.accessToken}`,
-          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: editName }),
       });
       const data = await response.json();
-      // setIsModalOpen(false);
-      setUserName(data.name);
-      setIsCollectingName(false);
-      setMessage('Name updated successfully');
+      if (response.ok) {
+        setContainers(data.containers);
+      } else {
+        setMessage(data.message || 'Failed to fetch containers');
+      }
     } catch (error) {
-      console.error('Error updating name:', error);
-      setMessage('Failed to update name');
+      setMessage('Server error');
+      console.error({ error });
     }
-  };
+  }
 
   const handleLocationChange = async (location) => {
     if (selectedLocation?.id === location.id) {
@@ -107,17 +107,7 @@ export default function Settings() {
       setSelectedLocation(location);
       setSelectedContainer(null);
       try {
-        const response = await fetch(`/api/user/location/${location.id}/containers`, {
-          headers: {
-            Authorization: `Bearer ${session.accessToken}`,
-          },
-        });
-        const data = await response.json();
-        if (response.ok) {
-          setContainers(data.containers);
-        } else {
-          setMessage(data.message || 'Failed to fetch containers');
-        }
+        await fetchContainers(location.id);
       } catch (error) {
         setMessage('Server error');
         console.error({ error });
@@ -158,7 +148,7 @@ export default function Settings() {
     setCurrentContainer(container);
     setEditName(container.name);
     setModalTitle('Edit Container');
-    setIsModalOpen(true);
+    setIsEditContainerModalOpen(true);
   };
 
   const handleDeleteContainer = async (container) => {
@@ -194,25 +184,6 @@ export default function Settings() {
     setIsCreateContainerModalOpen(true)
   };
 
-  const handleFinish = async () => {
-    try {
-      await fetch('/api/user', {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ setupCompleted: true }),
-      });
-      setIsModalOpen(false);
-      setMessage('Setup completed successfully');
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Error completing setup:', error);
-      setMessage('Failed to complete setup');
-    }
-  };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentLocation(null);
@@ -221,39 +192,8 @@ export default function Settings() {
     setSelectedLocationForContainer(null);
   };
 
-  const confirmCreateLocation = async () => {
-    if (!editName) {
-      setMessage('Please provide a valid location name');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/user/location', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: editName,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setLocations([...locations, data.location]);
-        closeModal();
-      } else {
-        const data = await response.json();
-        setMessage(data.message || 'Failed to create location');
-      }
-    } catch (error) {
-      setMessage('Server error');
-      console.error({ error });
-    }
-  };
-
   const confirmEditLocation = async (data) => {
+    setMessage('');
     if (!currentLocation) {
       setMessage('Invalid location details');
       return;
@@ -282,47 +222,9 @@ export default function Settings() {
     }
   };
 
-  const confirmCreateContainer = async () => {
-    if (!editName || !selectedLocationForContainer) {
-      setMessage('Please provide valid container details');
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `/api/user/location/${selectedLocationForContainer}/container`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${session.accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: editName,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.location.containers) {
-          setContainers([...containers, data.location.containers]);
-          closeModal();
-        } else {
-          setMessage('Failed to create container: Invalid response from server');
-        }
-      } else {
-        const data = await response.json();
-        setMessage(data.message || 'Failed to create container');
-      }
-    } catch (error) {
-      setMessage('Server error');
-      console.error({ error });
-    }
-  };
-
-  const confirmEditContainer = async () => {
-    if (!currentContainer || !selectedLocation) {
+  const confirmEditContainer = async (data) => {
+    setMessage('');
+    if (!currentContainer) {
       setMessage('Invalid container details');
       return;
     }
@@ -336,29 +238,21 @@ export default function Settings() {
             Authorization: `Bearer ${session.accessToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            name: editName,
-          }),
+          body: JSON.stringify({ name: data.name }),
         }
       );
 
       if (response.ok) {
-        const data = await response.json();
-        setContainers(
-          containers.map((container) =>
-            container.id === currentContainer.id ? data.container : container
-          )
-        );
+        fetchContainers(selectedLocation.id);
         closeModal();
       } else {
-        const data = await response.json();
         setMessage(data.message || 'Failed to update container');
       }
     } catch (error) {
       setMessage('Server error');
       console.error({ error });
     }
-  };
+  }
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -413,14 +307,23 @@ export default function Settings() {
 
             {/* Containers Table */}
             {selectedLocation && containers.length > 0 && (
-            <ContainersTable
-              selectedLocation={selectedLocation.name}
-              containers={containers}
-              selectedContainer={selectedContainer}
-              setSelectedContainer={setSelectedContainer}
-              handleEditContainer={handleEditContainer}
-              handleDeleteContainer={handleDeleteContainer}
-            />
+              <>
+                  <ContainersTable
+                    selectedLocation={selectedLocation.name}
+                    containers={containers}
+                    selectedContainer={selectedContainer}
+                    setSelectedContainer={setSelectedContainer}
+                    handleEditContainer={handleEditContainer}
+                    handleDeleteContainer={handleDeleteContainer}
+                  />
+                  <EditContainerModal 
+                    isOpen={isEditContainerModalOpen}
+                    onClose={() => setIsEditContainerModalOpen(false)}
+                    onSave={data => confirmEditContainer(data)}
+                    title={modalTitle}
+                    value={editName}
+                  />
+              </>
           )}
         </section>
       </main>

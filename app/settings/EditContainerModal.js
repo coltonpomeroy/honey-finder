@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SettingsModal from './SettingsModal';
 import ActionButtons from './ActionButtons';
 
 const EditContainerModal = ({ isOpen, onClose, onSave, title, value }) => {
-  const [name, setName] = useState(value);
+  const [name, setName] = useState("");
 
   const handleSave = async () => {
     try {
@@ -15,6 +15,10 @@ const EditContainerModal = ({ isOpen, onClose, onSave, title, value }) => {
         console.error('Error:', error);
     }
   };
+
+  useEffect(() => {
+    setName(value);
+  }, [value]);
 
 return (
     <SettingsModal isModalOpen={isOpen} setIsModalOpen={onClose} modalTitle={title}>

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import EditModal from './EditLocationModal';
 
-const ContainersTable = ({ containers, selectedContainer, setSelectedContainer, selectedLocation, handleEditContainer }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const ContainersTable = ({ containers, selectedContainer, setSelectedContainer, selectedLocation, handleEditContainer, handleDeleteContainer }) => {
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-bold">
@@ -45,7 +44,7 @@ const ContainersTable = ({ containers, selectedContainer, setSelectedContainer, 
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Add your delete container logic here
+                          handleDeleteContainer(container);
                         }}
                         className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                       >
