@@ -55,8 +55,7 @@ export const authOptions = {
                 }
               });
               await transport.verify();
-              console.log('SMTP connection verified');
-        
+              
               const { host } = new URL(url);
               const { text, html } = customEmailTemplate({ url, host, email });
         
@@ -88,7 +87,6 @@ export const authOptions = {
   
   callbacks: {
     async signIn({ user }) {
-      console.log({ SIGNIN_USER: user });
       
       const maxRetries = 3;
       let retryCount = 0;

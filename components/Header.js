@@ -116,7 +116,7 @@ const Header = () => {
               title={`${config.appName} hompage`}
               href="/"
             >
-              <Image
+              {/* <Image
                 src={logo}
                 alt={`${config.appName} logo`}
                 className="w-8"
@@ -124,7 +124,7 @@ const Header = () => {
                 priority={true}
                 width={32}
                 height={32}
-              />
+              /> */}
               <span className="font-extrabold text-lg">{config.appName}</span>
             </Link>
             <button

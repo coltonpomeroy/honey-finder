@@ -11,6 +11,11 @@ const nextConfig = {
   },
   experimental: {
     missingSuspenseWithCSRBailout: false,
+    appDir: true
+  },
+  pwa: {
+    dest: 'public',
+    register: true,
   },
 };
 

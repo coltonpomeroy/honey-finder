@@ -54,10 +54,6 @@ export default function Settings() {
   }, [session, searchParams]);
 
   useEffect(() => {
-    console.log({selectedLocation})
-  },[selectedLocation])
-
-  useEffect(() => {
     setModalTitle(`Welcome to PantryPal, ${userName}!`);
   },[userName]);
 
