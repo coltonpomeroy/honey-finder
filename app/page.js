@@ -1,14 +1,10 @@
+"use client";
+
 import { Suspense } from 'react'
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import Problem from "@/components/Problem";
-import FeaturesAccordion from "@/components/FeaturesAccordion";
-import Pricing from "@/components/Pricing";
-import FAQ from "@/components/FAQ";
-import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
-
-import { subscribeUser, unsubscribeUser, sendNotification } from './actions'
+import InstallPrompt from "@/components/InstallPrompt";
 
 export default function Home() {
   return (
@@ -17,12 +13,8 @@ export default function Home() {
         <Header />
       </Suspense>
       <main>
+        <InstallPrompt />
         <Hero />
-        {/* <Problem />
-        <FeaturesAccordion />
-        <Pricing />
-        <FAQ />
-        <CTA /> */}
       </main>
       <Footer />
     </>
