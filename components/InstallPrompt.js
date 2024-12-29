@@ -72,7 +72,7 @@ function InstallPrompt() {
         <p>
           To install this app on your iOS device, tap the share button
           <span role="img" aria-label="share icon"> ⎋ </span>
-          and then "Add to Home Screen"
+          and then {"Add to Home Screen"}
           <span role="img" aria-label="plus icon"> ➕ </span>.
         </p>
       )}
