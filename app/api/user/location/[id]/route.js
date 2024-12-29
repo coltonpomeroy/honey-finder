@@ -85,17 +85,18 @@ export async function PUT(req, params) {
   try {
     const user = await User.findOneAndUpdate(
       { 'storage._id': new mongoose.Types.ObjectId(id) },
-      { $set: { 'storage.$.name': name } },
-      { new: true }
+      { $set: { 'storage.$.name': name } }
     );
 
     if (!user) {
       return NextResponse.json({ message: 'Location not found' }, { status: 404 });
     }
 
-    const updatedLocation = user.storage.find(storageLocation => storageLocation._id.toString() === id);
-
-    return NextResponse.json({ location: updatedLocation }, { status: 200 });
+    const userObject = user.toObject();
+    console.log('User storage:', userObject.storage);
+    console.log('ID to find:', id);
+  
+    return NextResponse.json({ status: 201 });
   } catch (error) {
     return NextResponse.json({ message: 'Server error', error }, { status: 500 });
   }

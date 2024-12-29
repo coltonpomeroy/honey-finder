@@ -9,6 +9,7 @@ import ContainersTable from './ContainersTable';
 import CreateLocationModal from './CreateLocationModal';
 import CreateContainerModal from './CreateContainerModal';
 import { set } from 'mongoose';
+import EditLocationModal from './EditLocationModal';
 
 export default function Settings() {
   const { data: session } = useSession();
@@ -29,6 +30,7 @@ export default function Settings() {
   const [userName, setUserName] = useState(null);
   const [isCreateLocationModalOpen, setIsCreateLocationModalOpen] = useState(false);
   const [isCreateContainerModalOpen, setIsCreateContainerModalOpen] = useState(false);
+  const [isEditLocationModalOpen, setIsEditLocationModalOpen] = useState(false);
 
   useEffect(() => {
     if (!session) return;
@@ -127,7 +129,7 @@ export default function Settings() {
     setCurrentLocation(location);
     setEditName(location.name);
     setModalTitle('Edit Location');
-    setIsModalOpen(true);
+    setIsEditLocationModalOpen(true);
   };
 
   const handleDeleteLocation = async (location) => {
@@ -251,7 +253,7 @@ export default function Settings() {
     }
   };
 
-  const confirmEditLocation = async () => {
+  const confirmEditLocation = async (data) => {
     if (!currentLocation) {
       setMessage('Invalid location details');
       return;
@@ -264,18 +266,11 @@ export default function Settings() {
           Authorization: `Bearer ${session.accessToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: editName,
-        }),
+        body: JSON.stringify({ name: data.name }),
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setLocations(
-          locations.map((location) =>
-            location.id === currentLocation.id ? data.location : location
-          )
-        );
+        fetchLocations()
         closeModal();
       } else {
         const data = await response.json();
@@ -408,6 +403,13 @@ export default function Settings() {
               handleEditLocation={handleEditLocation}
               handleDeleteLocation={handleDeleteLocation}
             />
+            <EditLocationModal 
+              isOpen={isEditLocationModalOpen}
+              onClose={() => setIsEditLocationModalOpen(false)}
+              onSave={data => confirmEditLocation(data)}
+              title={`Edit Location: ${currentLocation?.name || ''}`}
+              value={currentLocation?.name || ""}
+            />
 
             {/* Containers Table */}
             {selectedLocation && containers.length > 0 && (
@@ -416,6 +418,8 @@ export default function Settings() {
               containers={containers}
               selectedContainer={selectedContainer}
               setSelectedContainer={setSelectedContainer}
+              handleEditContainer={handleEditContainer}
+              handleDeleteContainer={handleDeleteContainer}
             />
           )}
         </section>

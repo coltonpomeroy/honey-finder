@@ -1,6 +1,8 @@
-import React from 'react';
+import { useState } from 'react';
+import EditModal from './EditLocationModal';
 
-const ContainersTable = ({ containers, selectedContainer, setSelectedContainer, selectedLocation }) => {
+const ContainersTable = ({ containers, selectedContainer, setSelectedContainer, selectedLocation, handleEditContainer }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-bold">
@@ -34,7 +36,7 @@ const ContainersTable = ({ containers, selectedContainer, setSelectedContainer, 
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Add your edit container logic here
+                          handleEditContainer(container);
                         }}
                         className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
                       >
