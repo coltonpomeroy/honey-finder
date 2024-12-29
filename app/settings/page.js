@@ -7,6 +7,8 @@ import Link from 'next/link';
 import LocationsTable from './LocationTable';
 import ContainersTable from './ContainersTable';
 import CreateLocationModal from './CreateLocationModal';
+import CreateContainerModal from './CreateContainerModal';
+import { set } from 'mongoose';
 
 export default function Settings() {
   const { data: session } = useSession();
@@ -26,6 +28,7 @@ export default function Settings() {
   const [isCollectingName, setIsCollectingName] = useState(false);
   const [userName, setUserName] = useState(null);
   const [isCreateLocationModalOpen, setIsCreateLocationModalOpen] = useState(false);
+  const [isCreateContainerModalOpen, setIsCreateContainerModalOpen] = useState(false);
 
   useEffect(() => {
     if (!session) return;
@@ -45,6 +48,10 @@ export default function Settings() {
       setModalTitle(`Welcome to PantryPal, ${session.user.name}!`);
     }
   }, [session, searchParams]);
+
+  useEffect(() => {
+    console.log({selectedLocation})
+  },[selectedLocation])
 
   useEffect(() => {
     setModalTitle(`Welcome to PantryPal, ${userName}!`);
@@ -182,11 +189,7 @@ export default function Settings() {
   };
 
   const handleCreateContainer = () => {
-    setCurrentContainer(null);
-    setEditName('');
-    setModalTitle('Create Container');
-    setSelectedLocationForContainer(selectedLocation?.id || null); // Ensure ID is set
-    setIsModalOpen(true);
+    setIsCreateContainerModalOpen(true)
   };
 
   const handleFinish = async () => {
@@ -390,6 +393,12 @@ export default function Settings() {
             >
               Create Container
             </button>
+            <CreateContainerModal
+              isOpen={isCreateContainerModalOpen}
+              onClose={() => setIsCreateContainerModalOpen(false)}
+              onSave={handleCreateContainer}
+              locations={locations}
+            />
           </div>
             {/* Locations Table */}
             <LocationsTable
@@ -403,6 +412,7 @@ export default function Settings() {
             {/* Containers Table */}
             {selectedLocation && containers.length > 0 && (
             <ContainersTable
+              selectedLocation={selectedLocation.name}
               containers={containers}
               selectedContainer={selectedContainer}
               setSelectedContainer={setSelectedContainer}

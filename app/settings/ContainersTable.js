@@ -1,10 +1,10 @@
 import React from 'react';
 
-const ContainersTable = ({ containers, selectedContainer, setSelectedContainer }) => {
+const ContainersTable = ({ containers, selectedContainer, setSelectedContainer, selectedLocation }) => {
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-bold">
-        Containers in {selectedContainer?.locationName}
+        Containers in {selectedLocation}
       </h2>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-200">
