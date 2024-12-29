@@ -44,7 +44,7 @@ const InstallPrompt = () => {
   if (isIOS && !isStandalone) {
     return (
       <div>
-        <p>Install this app on your iOS device: tap the share icon and then "Add to Home Screen".</p>
+        <p>Install this app on your iOS device: tap the share icon and then {"Add to Home Screen"}.</p>
       </div>
     );
   }
