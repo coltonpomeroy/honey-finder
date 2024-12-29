@@ -16,11 +16,11 @@ export default function Home() {
       </Suspense>
       <main>
         <Hero />
-        <Problem />
+        {/* <Problem />
         <FeaturesAccordion />
         <Pricing />
         <FAQ />
-        <CTA />
+        <CTA /> */}
       </main>
       <Footer />
     </>
