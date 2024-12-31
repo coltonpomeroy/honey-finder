@@ -12,6 +12,7 @@ export default function Settings() {
   const searchParams = useSearchParams();
   const [locations, setLocations] = useState([]);
   const [message, setMessage] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [currentLocation, setCurrentLocation] = useState(null);
   const [editName, setEditName] = useState('');
