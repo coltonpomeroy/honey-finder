@@ -20,27 +20,20 @@ const getAllItemsForUser = async (userId) => {
           item: '$storage.items._id',
           name: '$storage.items.name', 
           quantity: '$storage.items.quantity',
-          expiration: '$storage.items.expirationDate',
+          expiration: {
+            $cond: {
+              if: { $eq: ['$storage.items.expirationDate', null] },
+              then: new Date('9999-12-31'),
+              else: '$storage.items.expirationDate'
+            }
+          },
           locationId: '$storage._id',
           locationName: '$storage.name'
         }
       },
       {
         $sort: {
-          // null values last, then sort by date ascending
           expiration: 1
-        }
-      },
-      {
-        // Handle null expiration dates
-        $addFields: {
-          hasExpiration: {
-            $cond: [
-              { $eq: ["$expiration", null] },
-              1,
-              0
-            ]
-          }
         }
       }
     ]);
@@ -71,10 +64,14 @@ export async function POST(req) {
   const prompt = `
 You are an AI chef. Your goal is to create delicious and practical recipe ideas using the provided ingredients, prioritizing those that are expiring soon. Focus on the items that have recently expired or will expire in the next seven days and emphasize preventing food waste. Do your best to create a delicious meal. Based on the brand and item, do your best to estimate the value of the expired or soon to expire items used in the recipe. The value should never be $0.00.
 
+Before providing a recipe suggestion, weigh whether or not the standard American diet would be interested in the recipe. If the recipe is too niche, consider providing a more mainstream recipe.
+
+It's also acceptable to suggest eating a food item as is, if it's a common practice. For example, a banana can be eaten as is.
+
 ### Expiring Soon (Next 3 Days)
 ${allItems.map(item => `- **${item.name}**\n  - Expiration Date: ${item.expirationDate}\n  - Estimated Cost: $${item.estimatedCost ? item.estimatedCost.toFixed(2) : 'N/A'}`).join("\n")}
 
-Please generate 2-3 recipe ideas using these items, prioritizing the ones that will expire the soonest. Highlight the expiring ingredients as the stars of each dish and calculate the total cost savings. Provide the response in plain JSON format with consistent properties. Do not include any additional text or explanations.
+Please generate 2-3 recipe ideas using these items, prioritizing the those foods that will expire the soonest. Highlight the expiring ingredients as the stars of each dish and calculate the total cost savings. Provide the response in plain JSON format with consistent properties. Do not include any additional text or explanations.
 
 Example JSON format: DO NOT USE MARKDOWN
 [
@@ -91,7 +88,7 @@ Example JSON format: DO NOT USE MARKDOWN
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a creative AI chef focused on helping users reduce food waste by using ingredients that are about to expire. You should recommend recipes where the food items go together well. It is very important that you provide a costSavings for each recipe, which is your best guess at how much it would cost to replace the food about to expire. Use the brand name and item to determine the potential of each item that is set to expire soon or has recently expired. costSavings is the value of all ingredients used. IMPORTANT!! costSavings should always have a dollar and cents amount in the format of $x.xx....no other text. Also, next to any food about to expire within the next three days, append 'Expiring in {x} days'. Do not include any additional text or explanations. Only provide the JSON response." },
+        { role: "system", content: "You are a creative AI chef focused on helping users reduce food waste by using ingredients that are about to expire. You should recommend recipes where the food items go together well. It's also acceptable to simply recommend consuming a soon-to-expire food on its own if it is standard practice for the food item to be eaten this way. Prioritize consuming food that will expire first. It is very important that you provide a costSavings for each recipe, which is your best guess at how much it would cost to replace the food about to expire. Use the brand name and item to determine the potential of each item that is set to expire soon or has recently expired. costSavings is the value of all ingredients used. IMPORTANT!! costSavings should always have a dollar and cents amount in the format of $x.xx....no other text. Also, next to any food about to expire within the next three days, append 'Expiring in {x} days'. Do not lie and say a food is expiring soon if it is not. Do not include any additional text or explanations. Only provide the JSON response." },
         { role: "user", content: prompt },
       ],
     });
