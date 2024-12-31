@@ -8,27 +8,47 @@ import connectMongo from '@/libs/mongoose';
 
 const secret = process.env.NEXTAUTH_SECRET;
 
-export const getAllItemsForUser = async (userId) => {
+const getAllItemsForUser = async (userId) => {
   try {
     const userItems = await User.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(userId) } },
       { $unwind: '$storage' },
-      { $unwind: '$storage.containers' },
-      { $unwind: '$storage.containers.items' },
+      { $unwind: '$storage.items' },
       {
         $project: {
           _id: 0,
-          name: '$storage.containers.items.name',
-          expirationDate: '$storage.containers.items.expirationDate',
-          estimatedCost: '$storage.containers.items.estimatedCost',
-        },
+          item: '$storage.items._id',
+          name: '$storage.items.name', 
+          quantity: '$storage.items.quantity',
+          expiration: '$storage.items.expirationDate',
+          locationId: '$storage._id',
+          locationName: '$storage.name'
+        }
       },
+      {
+        $sort: {
+          // null values last, then sort by date ascending
+          expiration: 1
+        }
+      },
+      {
+        // Handle null expiration dates
+        $addFields: {
+          hasExpiration: {
+            $cond: [
+              { $eq: ["$expiration", null] },
+              1,
+              0
+            ]
+          }
+        }
+      }
     ]);
 
     return userItems;
   } catch (error) {
     console.error('Error fetching items:', error);
-    throw error;
+    throw new Error('Error fetching items');
   }
 };
 
