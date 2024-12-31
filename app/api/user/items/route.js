@@ -44,27 +44,20 @@ const getAllItemsForUser = async (userId) => {
           item: '$storage.items._id',
           name: '$storage.items.name', 
           quantity: '$storage.items.quantity',
-          expiration: '$storage.items.expirationDate',
+          expiration: {
+            $cond: {
+              if: { $eq: ['$storage.items.expirationDate', null] },
+              then: new Date('9999-12-31'),
+              else: '$storage.items.expirationDate'
+            }
+          },
           locationId: '$storage._id',
           locationName: '$storage.name'
         }
       },
       {
         $sort: {
-          // null values last, then sort by date ascending
           expiration: 1
-        }
-      },
-      {
-        // Handle null expiration dates
-        $addFields: {
-          hasExpiration: {
-            $cond: [
-              { $eq: ["$expiration", null] },
-              1,
-              0
-            ]
-          }
         }
       }
     ]);
