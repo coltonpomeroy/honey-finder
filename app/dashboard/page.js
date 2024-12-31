@@ -54,16 +54,6 @@ export default function Dashboard() {
     };
 
     fetchItems();
-
-    const fetchUser = async () => {
-      const response = await fetch('/api/user')
-      const data = await response.json()
-      if (!data.setupCompleted) {
-        router.push('/settings?setup=true');
-      }
-    }
-    fetchUser();
-    
   }, [session, router]);
 
   useEffect(() => {
