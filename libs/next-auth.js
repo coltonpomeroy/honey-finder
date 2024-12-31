@@ -109,11 +109,12 @@ export const authOptions = {
           } else {
             const storage = [
               {
-                name: "My Home",
-                containers: [
-                  { name: "Refrigerator", items: [] },
-                  { name: "Pantry", items: [] },
-                ],
+                name: "Kitchen Pantry",
+                items: []
+              },
+              {
+                name: "Kitchen Fridge",
+                items: []
               },
             ];
             existingUser = new User({

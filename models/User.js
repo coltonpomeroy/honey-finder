@@ -9,15 +9,15 @@ const itemSchema = new mongoose.Schema({
 }, { _id: true, timestamps: true });
 
 // CONTAINER SCHEMA
-const containerSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  items: [itemSchema],
-}, { _id: true });
+// const containerSchema = new mongoose.Schema({
+//   name: { type: String, required: true },
+//   items: [itemSchema],
+// }, { _id: true });
 
 // STORAGE LOCATION SCHEMA
 const storageLocationSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  containers: [containerSchema],
+  items: [itemSchema],
 }, { _id: true });
 
 // USER SCHEMA

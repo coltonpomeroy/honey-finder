@@ -12,7 +12,6 @@ export default function Dashboard() {
   const router = useRouter();
   const [items, setItems] = useState([]);
   const [locations, setLocations] = useState([]);
-  const [containers, setContainers] = useState([]);
   const [message, setMessage] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
@@ -202,13 +201,13 @@ export default function Dashboard() {
   };
 
   const confirmCreate = async (addAnother = false) => {
-    if (!editName || !editQuantity || !selectedLocation || !selectedContainer) {
+    if (!editName || !editQuantity || !selectedLocation ) {
       setMessage('Please provide valid item details');
       return;
     }
 
     try {
-      const response = await fetch(`/api/user/location/${selectedLocation}/container/${selectedContainer}/item`, {
+      const response = await fetch(`/api/user/location/${selectedLocation}/items`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.accessToken}`,
@@ -254,23 +253,6 @@ export default function Dashboard() {
     const locationId = e.target.value;
     setSelectedLocation(locationId);
     setSelectedContainer('');
-
-    try {
-      const response = await fetch(`/api/user/location/${locationId}/containers`, {
-        headers: {
-          'Authorization': `Bearer ${session.accessToken}`,
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setContainers(data.containers);
-      } else {
-        setMessage(data.message || 'Failed to fetch containers');
-      }
-    } catch (error) {
-      setMessage('Server error');
-      console.error({ error });
-    }
   };
 
   const getRecipeSuggestions = async () => {
@@ -555,22 +537,6 @@ export default function Dashboard() {
                     <option value="">Select a location</option>
                     {locations.map(location => (
                       <option key={location.id} value={location.id}>{location.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="container">
-                    Container
-                  </label>
-                  <select
-                    id="container"
-                    value={selectedContainer}
-                    onChange={(e) => setSelectedContainer(e.target.value)}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  >
-                    <option value="">Select a container</option>
-                    {containers.map(container => (
-                      <option key={container.id} value={container.id}>{container.name}</option>
                     ))}
                   </select>
                 </div>
