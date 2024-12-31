@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import TestimonialsAvatars from "./TestimonialsAvatars";
 import config from "@/config";
-import pantryPaul from "@/app/pantry-paul.png";
+import hero from "@/app/family-cooking-hero.jpg";
 
 const Hero = () => {
   return (
@@ -40,12 +40,10 @@ const Hero = () => {
       </div>
       <div className="lg:w-full">
         <Image
-          src={pantryPaul}
-          alt="Pantry Paul"
+          src={hero}
+          alt="A family cooking together around a kitchen island"
           className="w-full"
           priority={true}
-          width={500}
-          height={500}
         />
       </div>
     </section>
