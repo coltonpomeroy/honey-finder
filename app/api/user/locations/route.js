@@ -1,4 +1,4 @@
-import User from '@/models/User'; // Adjust the path to your User model
+import User from '@/models/User';
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import connectMongo from '@/libs/mongoose';

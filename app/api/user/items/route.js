@@ -1,8 +1,8 @@
-import connectMongo from "@/libs/mongoose";
-import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
-import { getToken } from 'next-auth/jwt';
 import User from '@/models/User';
+import { getToken } from 'next-auth/jwt';
+import { NextResponse } from 'next/server';
+import connectMongo from '@/libs/mongoose';
 
 const secret = process.env.NEXTAUTH_SECRET;
 
@@ -37,25 +37,22 @@ const getAllItemsForUser = async (userId) => {
     const userItems = await User.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(userId) } },
       { $unwind: '$storage' },
-      { $unwind: '$storage.containers' },
-      { $unwind: '$storage.containers.items' },
+      { $unwind: '$storage.items' },
       {
         $project: {
           _id: 0,
-          item: '$storage.containers.items._id',
-          name: '$storage.containers.items.name', 
-          quantity: '$storage.containers.items.quantity',
-          expiration: '$storage.containers.items.expirationDate',
+          item: '$storage.items._id',
+          name: '$storage.items.name', 
+          quantity: '$storage.items.quantity',
+          expiration: '$storage.items.expirationDate',
           locationId: '$storage._id',
-          locationName: '$storage.name',
-          containerId: '$storage.containers._id',
-          container: '$storage.containers.name'
+          locationName: '$storage.name'
         }
       },
       {
         $sort: {
           // null values last, then sort by date ascending
-          expirationDate: 1
+          expiration: 1
         }
       },
       {
@@ -69,18 +66,12 @@ const getAllItemsForUser = async (userId) => {
             ]
           }
         }
-      },
-      {
-        $sort: {
-          hasExpiration: 1,
-          expiration: 1
-        }
       }
     ]);
 
     return userItems;
   } catch (error) {
     console.error('Error fetching items:', error);
-    throw error;
+    throw new Error('Error fetching items');
   }
 };

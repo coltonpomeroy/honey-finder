@@ -53,7 +53,7 @@ export default function Dashboard() {
     };
 
     fetchItems();
-  }, [session, router]);
+  }, [session, router, isModalOpen]);
 
   useEffect(() => {
     if (!session) return;
@@ -108,7 +108,7 @@ export default function Dashboard() {
     setScannedBarcode('');
     setModalTitle('Create Item');
     setIsModalOpen(true);
-    setShowScanner(true); // Explicitly set to true
+    setShowScanner(true);
   };
 
   const closeModal = () => {
@@ -128,13 +128,13 @@ export default function Dashboard() {
   };
 
   const confirmDelete = async () => {
-    if (!currentItem || !currentItem.locationId || !currentItem.containerId || !currentItem.item) {
+    if (!currentItem || !currentItem.locationId || !currentItem.item) {
       setMessage('Invalid item details');
       return;
     }
 
     try {
-      const response = await fetch(`/api/user/location/${currentItem.locationId}/container/${currentItem.containerId}/item/${currentItem.item}`, {
+      const response = await fetch(`/api/user/location/${currentItem.locationId}/${currentItem.item}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${session.accessToken}`,
@@ -161,14 +161,14 @@ export default function Dashboard() {
   };
 
   const confirmEdit = async () => {
-    if (!currentItem || !selectedLocation || !selectedContainer || !currentItem.item) {
+    if (!currentItem || !selectedLocation || !currentItem.item) {
       setMessage('Invalid item details');
       return;
     }
 
     try {
-      const response = await fetch(`/api/user/location/${selectedLocation}/container/${selectedContainer}/item/${currentItem.item}`, {
-        method: 'PUT',
+      const response = await fetch(`/api/user/location/${selectedLocation}/${currentItem.item}`, {
+        method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${session.accessToken}`,
           'Content-Type': 'application/json',
@@ -284,7 +284,6 @@ export default function Dashboard() {
     console.log('Scanner effect running, showScanner:', showScanner);
     if (showScanner) {
       const scannerElement = document.getElementById("scanner");
-      console.log('Scanner element:', scannerElement);
       if (scannerElement) {
         const scanner = new Html5QrcodeScanner(
           "scanner",
