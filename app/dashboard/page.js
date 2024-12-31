@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import ButtonAccount from "@/components/ButtonAccount";
 import Modal from "@/components/Modal";
 import { Html5QrcodeScanner } from 'html5-qrcode';
+import Fuse from 'fuse.js';
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -27,6 +28,8 @@ export default function Dashboard() {
   const [showActions, setShowActions] = useState({});
   const [recipes, setRecipes] = useState([]);
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredItems, setFilteredItems] = useState(items);
 
 
   useEffect(() => {
@@ -80,6 +83,23 @@ export default function Dashboard() {
 
     fetchLocations();
   }, [session]);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  useEffect(() => {
+    if (searchQuery) {
+      const fuse = new Fuse(items, {
+        keys: ['name'],
+        threshold: 0.3, // Adjust the threshold as needed
+      });
+      const result = fuse.search(searchQuery);
+      setFilteredItems(result.map(({ item }) => item));
+    } else {
+      setFilteredItems(items);
+    }
+  }, [searchQuery, items]);
 
   const handleEdit = (item) => {
     setCurrentItem(item);
@@ -343,6 +363,8 @@ export default function Dashboard() {
     console.warn(`Scan failed: ${error}`);
   };
 
+  const itemsArray = searchQuery ? filteredItems : items;
+
   return (
     <main className="min-h-screen p-8 pb-24">
       <section className="max-w-6xl mx-auto space-y-8">
@@ -354,7 +376,7 @@ export default function Dashboard() {
             onClick={handleCreate}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            Create Item
+            Add Item
           </button>
           <button
             onClick={getRecipeSuggestions}
@@ -398,12 +420,20 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
+            <input
+              type="text"
+              placeholder="Search items..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            <br/>
+            <br/>
           <div className="min-w-full bg-white border border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-100 p-4">
               <div className="font-bold">Item Name</div>
             </div>
             {/* ITEMS TABLE */}
-            {items.map((item) => (
+            {itemsArray.map((item) => (
               <div
                 key={item.item}
                 className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border-b cursor-pointer"
@@ -412,7 +442,10 @@ export default function Dashboard() {
                 <div>
                   <div>{item.name}</div>
                   <div>{item.expirationDate}</div>
-                  {item.expiration && (
+                  {/* At the time this code was written, no expiration date is in data as expiring in the year 9999
+                    This code checks if the first digit of the expiration date is not 9, and if so, it will display the expiration date
+                  */ }
+                  {item.expiration && item.expiration[0] < 9 && (
                     <div className={`text-sm font-medium mt-1 ${
                       new Date(item.expiration) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) 
                         ? 'text-red-600' 
