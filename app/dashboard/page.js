@@ -308,17 +308,22 @@ export default function Dashboard() {
             qrbox: 250, 
             videoConstraints: {
               facingMode: "environment",
-              focusMode: 'continuous'
+              
             }
           },
         );
         scanner.render(onScanSuccess, onScanFailure);
         scannerRef.current = scanner;
         const cameraPermissionButton = document.getElementById('html5-qrcode-button-camera-permission');
-        console.log({ cameraPermissionButton });
         if (cameraPermissionButton) {
           cameraPermissionButton.textContent = 'ENABLE CAMERA BARCODE SCANNER';
         }
+        scanner.applyVideoConstraints({ 
+          focusMode: 'continuous',
+          advanced: [
+            {zoom: isAndroid ? 1.5 : 2.0,}
+           ]
+        });
       }
     }
     return () => {
