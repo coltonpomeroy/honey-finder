@@ -92,7 +92,7 @@ export default function Dashboard() {
     if (searchQuery) {
       const fuse = new Fuse(items, {
         keys: ['name'],
-        threshold: 0.3, // Adjust the threshold as needed
+        threshold: 0.5, // Adjust the threshold as needed
       });
       const result = fuse.search(searchQuery);
       setFilteredItems(result.map(({ item }) => item));
