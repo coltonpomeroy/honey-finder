@@ -125,7 +125,7 @@ export default function Dashboard() {
     setEditExpirationDate('');
     setSelectedLocation('');
     setScannedBarcode('');
-    setModalTitle('Create Item');
+    setModalTitle('Scan a Barcode');
     setIsModalOpen(true);
     setShowScanner(true);
   };
@@ -307,7 +307,8 @@ export default function Dashboard() {
             fps: 10, 
             qrbox: 250, 
             videoConstraints: {
-              facingMode: "environment"
+              facingMode: "environment",
+              focusMode: 'continuous'
             }
           },
         );
