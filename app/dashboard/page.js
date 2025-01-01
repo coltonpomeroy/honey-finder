@@ -309,7 +309,10 @@ export default function Dashboard() {
             qrbox: 250, 
             videoConstraints: {
               facingMode: "environment",
-              
+              focusMode: 'continuous',
+              advanced: [
+                {zoom: isAndroid ? 1.5 : 2.0,}
+               ]
             }
           },
         );
@@ -319,12 +322,7 @@ export default function Dashboard() {
         if (cameraPermissionButton) {
           cameraPermissionButton.textContent = 'ENABLE CAMERA BARCODE SCANNER';
         }
-        scanner.applyVideoConstraints({ 
-          focusMode: 'continuous',
-          advanced: [
-            {zoom: isAndroid ? 1.5 : 2.0,}
-           ]
-        });
+        
       }
     }
     return () => {
