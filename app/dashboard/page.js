@@ -301,6 +301,7 @@ export default function Dashboard() {
     if (showScanner) {
       const scannerElement = document.getElementById("scanner");
       if (scannerElement) {
+        const isAndroid = /Android/i.test(navigator.userAgent);
         const scanner = new Html5QrcodeScanner(
           "scanner",
           { 
