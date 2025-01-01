@@ -7,6 +7,8 @@ import ButtonAccount from "@/components/ButtonAccount";
 import Modal from "@/components/Modal";
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import Fuse from 'fuse.js';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -21,7 +23,6 @@ export default function Dashboard() {
   const [editQuantity, setEditQuantity] = useState(1);
   const [editExpirationDate, setEditExpirationDate] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
-  const [selectedContainer, setSelectedContainer] = useState('');
   const [scannedBarcode, setScannedBarcode] = useState('');
   const [showScanner, setShowScanner] = useState(false);
   const scannerRef = useRef(null);
@@ -107,7 +108,6 @@ export default function Dashboard() {
     setEditQuantity(item.quantity);
     setEditExpirationDate(item.expiration ? new Date(item.expiration).toISOString().split('T')[0] : '');
     setSelectedLocation(item.locationId);
-    setSelectedContainer(item.containerId);
     setModalTitle('Edit Item');
     setIsModalOpen(true);
   };
@@ -124,7 +124,6 @@ export default function Dashboard() {
     setEditQuantity(1);
     setEditExpirationDate('');
     setSelectedLocation('');
-    setSelectedContainer('');
     setScannedBarcode('');
     setModalTitle('Create Item');
     setIsModalOpen(true);
@@ -138,7 +137,6 @@ export default function Dashboard() {
     setEditQuantity(1);
     setEditExpirationDate('');
     setSelectedLocation('');
-    setSelectedContainer('');
     setScannedBarcode('');
     setShowScanner(false);
     setMessage('');
@@ -272,7 +270,6 @@ export default function Dashboard() {
   const handleLocationChange = async (e) => {
     const locationId = e.target.value;
     setSelectedLocation(locationId);
-    setSelectedContainer('');
   };
 
   const getRecipeSuggestions = async () => {
@@ -313,7 +310,6 @@ export default function Dashboard() {
               facingMode: "environment"
             }
           },
-          /* verbose= */ false
         );
         scanner.render(onScanSuccess, onScanFailure);
         scannerRef.current = scanner;
@@ -429,14 +425,18 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
-            <input
-              type="text"
-              placeholder="Search items..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
-            <br/>
-            <br/>
+            <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+              <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search items..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                style={{margin: '1em 0'}}
+              />
+            </div>
+            
+          
           <div className="min-w-full bg-white border border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-100 p-4">
               <div className="font-bold">Item Name</div>
