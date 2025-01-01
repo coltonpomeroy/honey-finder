@@ -306,7 +306,13 @@ export default function Dashboard() {
       if (scannerElement) {
         const scanner = new Html5QrcodeScanner(
           "scanner",
-          { fps: 10, qrbox: 250 },
+          { 
+            fps: 10, 
+            qrbox: 250, 
+            videoConstraints: {
+              facingMode: "environment"
+            }
+          },
           /* verbose= */ false
         );
         scanner.render(onScanSuccess, onScanFailure);
