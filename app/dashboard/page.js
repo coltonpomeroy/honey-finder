@@ -425,14 +425,14 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
-            <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+            <div className="relative my-4">
               <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
               <input
                 type="text"
                 placeholder="Search items..."
                 value={searchQuery}
                 onChange={handleSearchChange}
-                style={{margin: '1em 0'}}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded"
               />
             </div>
             
