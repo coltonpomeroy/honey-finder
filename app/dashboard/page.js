@@ -301,7 +301,6 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    console.log('Scanner effect running, showScanner:', showScanner);
     if (showScanner) {
       const scannerElement = document.getElementById("scanner");
       if (scannerElement) {
@@ -312,6 +311,11 @@ export default function Dashboard() {
         );
         scanner.render(onScanSuccess, onScanFailure);
         scannerRef.current = scanner;
+        const cameraPermissionButton = document.getElementById('html5-qrcode-button-camera-permission');
+        console.log({ cameraPermissionButton });
+        if (cameraPermissionButton) {
+          cameraPermissionButton.textContent = 'ENABLE CAMERA BARCODE SCANNER';
+        }
       }
     }
     return () => {
@@ -326,7 +330,6 @@ export default function Dashboard() {
       }
     };
   }, [showScanner]);
-  
 
   useEffect(() => {
     const fetchProductDetails = async () => {

@@ -20,3 +20,8 @@ progress::-webkit-progress-value {
     @apply !capitalize;
   }
 }
+
+button#html5-qrcode-button-camera-permission {
+  background-color: yellow;
+  padding: 1em;
+}
