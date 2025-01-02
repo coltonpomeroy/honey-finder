@@ -310,8 +310,9 @@ export default function Dashboard() {
             videoConstraints: {
               facingMode: "environment",
               focusMode: 'continuous',
+              aspectRatio: 1.777778,
               advanced: [
-                {zoom: isAndroid ? 1.5 : 2.0,}
+                {zoom: isAndroid ? 1 : 1.5}
                ]
             }
           },
