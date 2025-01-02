@@ -305,14 +305,14 @@ export default function Dashboard() {
         const scanner = new Html5QrcodeScanner(
           "scanner",
           { 
-            fps: 10, 
+            fps: 15, 
             qrbox: 250, 
             videoConstraints: {
               facingMode: "environment",
               focusMode: 'continuous',
-              aspectRatio: 1.777778,
+              aspectRatio: 2,
               advanced: [
-                {zoom: isAndroid ? 1 : 1.5}
+                {zoom: 2}
                ]
             }
           },
