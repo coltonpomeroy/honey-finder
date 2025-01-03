@@ -10,11 +10,9 @@ import User from "@/models/User";
 import clientPromise from "./mongo";
 
 export const authOptions = {
-  // Set any random key in .env.local
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
-      // Follow the "Login with Google" tutorial to get your credentials
       clientId: process.env.GOOGLE_ID,
       clientSecret: process.env.GOOGLE_SECRET,
       allowDangerousEmailAccountLinking: true,
@@ -28,8 +26,6 @@ export const authOptions = {
         };
       },
     }),
-    // Follow the "Login with Email" tutorial to set up your email server
-    // Requires a MongoDB database. Set MONOGODB_URI env variable.
     ...(connectMongo
       ? [
         EmailProvider({
@@ -42,24 +38,23 @@ export const authOptions = {
             },
             secure: false,
             debug: true,
-            logger: true
+            logger: true,
           },
           from: process.env.EMAIL_FROM,
           sendVerificationRequest: async ({ identifier: email, url, provider }) => {
             try {
-              // Test connection first
               const transport = nodemailer.createTransport({
                 ...provider.server,
                 tls: {
                   ciphers: 'SSLv3',
-                  rejectUnauthorized: false
-                }
+                  rejectUnauthorized: false,
+                },
               });
               await transport.verify();
-              
+
               const { host } = new URL(url);
               const { text, html } = customEmailTemplate({ url, host, email });
-        
+
               const result = await transport.sendMail({
                 to: email,
                 from: provider.from,
@@ -67,62 +62,43 @@ export const authOptions = {
                 text,
                 html,
               });
-        
+
               console.log('Email sent successfully:', result);
             } catch (error) {
               console.error('Detailed email error:', {
                 code: error.code,
                 message: error.message,
-                stack: error.stack
+                stack: error.stack,
               });
               throw error;
             }
           },
-        })
-        ]
+        }),
+      ]
       : []),
   ],
-
   adapter: MongoDBAdapter(clientPromise),
-
-  
   callbacks: {
-    async signIn({ user, req }) {
-      
+    async signIn({ user }) {
       const maxRetries = 3;
       let retryCount = 0;
 
       if (mongoose.connection.readyState !== 1) {
         await mongoose.connect(process.env.MONGODB_URI);
       }
+      let deviceType = 'desktop';
 
-      const userAgent = req.headers['user-agent'];
-      
+
       while (retryCount < maxRetries) {
         try {
           let existingUser = await User.findOne({ email: user.email })
             .maxTimeMS(60000) // 5 second timeout
             .exec();
 
-            let deviceType = 'desktop';
-
-            if (/mobile/i.test(userAgent)) {
-              if (/android/i.test(userAgent)) {
-                deviceType = 'android';
-              } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-                deviceType = 'ios';
-              } else {
-                deviceType = 'mobile';
-              }
-            }
-    
           if (existingUser) {
-            if (existingUser.firstLogin) {
-              existingUser.firstLogin = false;
-              existingUser.lastLogin = new Date();
-              existingUser.deviceType = deviceType;
-              await existingUser.save();
-            }
+            existingUser.lastLogin = new Date();
+            existingUser.deviceType = deviceType;
+            await existingUser.save();
           } else {
             const storage = [
               {
@@ -142,47 +118,44 @@ export const authOptions = {
               firstLogin: true,
               setupCompleted: false,
               storage,
+              lastLogin: new Date()
             });
             await existingUser.save();
           }
-          
-          user.existingUser = existingUser;
+
           return true;
-          
         } catch (error) {
           console.error(`Attempt ${retryCount + 1} failed:`, error);
           retryCount++;
-          
+
           if (retryCount === maxRetries) {
             console.error('Max retries reached. Authentication failed.');
             return false;
           }
-          
-          // Wait before retrying (exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+
+          await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount));
         }
       }
-      
+
       return false;
     },
     async jwt({ token, user, account }) {
       if (user?.existingUser) {
         const existingUser = user.existingUser;
-        token.id = existingUser.id; // User ID from database
-        token.email = existingUser.email; // Email for API calls if needed
-        token.accessToken = account?.access_token; // OAuth access token if needed
-        token.firstLogin = existingUser.firstLogin; // Track first login
-        token.setupCompleted = existingUser.setupCompleted; // Track setup completion
+        token.id = existingUser.id;
+        token.email = existingUser.email;
+        token.accessToken = account?.access_token;
+        token.firstLogin = existingUser.firstLogin;
+        token.setupCompleted = existingUser.setupCompleted;
       }
       return token;
     },
     async session({ session, token }) {
-      // Attach the token to the session
       if (session?.user) {
         session.user.id = token.id;
-        session.user.accessToken = token.accessToken; // Optional, for frontend use
-        session.user.firstLogin = token.firstLogin; // Track first login
-        session.user.setupCompleted = token.setupCompleted; // Track setup completion
+        session.user.accessToken = token.accessToken;
+        session.user.firstLogin = token.firstLogin;
+        session.user.setupCompleted = token.setupCompleted;
       }
       return session;
     },
@@ -192,8 +165,6 @@ export const authOptions = {
   },
   theme: {
     brandColor: config.colors.main,
-    // Add you own logo below. Recommended size is rectangle (i.e. 200x50px) and show your logo + name.
-    // It will be used in the login flow to display your logo. If you don't add it, it will look faded.
     logo: `https://${config.domainName}/logos/pantry-paul-logo.png`,
   },
 };
