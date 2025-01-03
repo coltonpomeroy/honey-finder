@@ -87,7 +87,7 @@ export const authOptions = {
 
   
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, req }) {
       
       const maxRetries = 3;
       let retryCount = 0;
@@ -95,16 +95,32 @@ export const authOptions = {
       if (mongoose.connection.readyState !== 1) {
         await mongoose.connect(process.env.MONGODB_URI);
       }
+
+      const userAgent = req.headers['user-agent'];
       
       while (retryCount < maxRetries) {
         try {
           let existingUser = await User.findOne({ email: user.email })
             .maxTimeMS(60000) // 5 second timeout
             .exec();
+
+            let deviceType = 'desktop';
+
+            if (/mobile/i.test(userAgent)) {
+              if (/android/i.test(userAgent)) {
+                deviceType = 'android';
+              } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                deviceType = 'ios';
+              } else {
+                deviceType = 'mobile';
+              }
+            }
     
           if (existingUser) {
             if (existingUser.firstLogin) {
               existingUser.firstLogin = false;
+              existingUser.lastLogin = new Date();
+              existingUser.deviceType = deviceType;
               await existingUser.save();
             }
           } else {

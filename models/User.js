@@ -55,6 +55,12 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    lastLogin: {
+      type: Date,
+    },
+    deviceType: {
+      type: String,
+    },
   },
   {
     timestamps: true,
