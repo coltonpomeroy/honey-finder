@@ -1,6 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
-import TestimonialsAvatars from "./TestimonialsAvatars";
+import Link from "next/link"; "./TestimonialsAvatars";
 import config from "@/config";
 import hero from "@/app/family-cooking-hero.jpg";
 

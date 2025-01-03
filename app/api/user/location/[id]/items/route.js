@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import User from '@/models/User';
+import ItemCreationLog from '@/models/ItemCreationLog';
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import connectMongo from '@/libs/mongoose';
@@ -71,6 +72,11 @@ export async function POST(req, { params }) {
     await user.save();
 
     const createdItem = location.items[location.items.length - 1];
+    const itemCreationLog = new ItemCreationLog({
+      userId: user._id,
+      itemId: createdItem._id,
+    });
+    await itemCreationLog.save();
     return NextResponse.json({ item: createdItem }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ message: 'Server error', error }, { status: 500 });
