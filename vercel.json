@@ -1,9 +1,4 @@
 {
-    "functions": {
-      "api/sendDailyExpiringItemsEmail": {
-        "node": 22
-      }
-    },
     "crons": [
       {
         "path": "/api/sendDailyExpiringItemsEmail",
