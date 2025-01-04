@@ -1,6 +1,6 @@
 {
     "functions": {
-      "api/check-expiring-items.js": {
+      "api/sendDailyExpiringItemsEmail": {
         "runtime": "nodejs14.x"
       }
     },
