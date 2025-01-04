@@ -1,0 +1,13 @@
+{
+    "functions": {
+      "api/check-expiring-items.js": {
+        "runtime": "nodejs14.x"
+      }
+    },
+    "crons": [
+      {
+        "path": "/api/sendDailyExpiringItemsEmail",
+        "schedule": "0 0 * * *"
+      }
+    ]
+  }
