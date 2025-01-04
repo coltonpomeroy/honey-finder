@@ -8,7 +8,7 @@ import Modal from "@/components/Modal";
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import Fuse from 'fuse.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faFilter } from '@fortawesome/free-solid-svg-icons';
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -31,6 +31,8 @@ export default function Dashboard() {
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredItems, setFilteredItems] = useState(items);
+  const [filterType, setFilterType] = useState(null);
+  const [showFilterOptions, setShowFilterOptions] = useState(false);
 
 
   useEffect(() => {
@@ -89,18 +91,40 @@ export default function Dashboard() {
     setSearchQuery(e.target.value);
   };
 
+  const handleFilter = (type) => {
+    setFilterType(type);
+  };
+
+  const clearFilter = () => {
+    setFilterType(null);
+    setShowFilterOptions(false);
+  };
+
   useEffect(() => {
+    let filtered = items;
     if (searchQuery) {
       const fuse = new Fuse(items, {
         keys: ['name'],
         threshold: 0.5, // Adjust the threshold as needed
       });
       const result = fuse.search(searchQuery);
-      setFilteredItems(result.map(({ item }) => item));
+      filtered = result.map(({ item }) => item);
     } else {
       setFilteredItems(items);
     }
-  }, [searchQuery, items]);
+
+    if (filterType) {
+      const now = new Date();
+      const filterDate = new Date();
+      if (filterType === 'threeDays') {
+        filterDate.setDate(now.getDate() + 3);
+      } else if (filterType === 'week') {
+        filterDate.setDate(now.getDate() + 7);
+      }
+      filtered = filtered.filter(item => new Date(item.expiration) <= filterDate);
+    }
+    setFilteredItems(filtered);
+  }, [searchQuery, filterType, items]);
 
   const handleEdit = (item) => {
     setCurrentItem(item);
@@ -365,15 +389,12 @@ export default function Dashboard() {
   }, [scannedBarcode]);
 
   const onScanSuccess = (decodedText, decodedResult) => {
-    console.log(`Scan result: ${decodedText}`, decodedResult);
     setScannedBarcode(decodedText);
   };
 
   const onScanFailure = (error) => {
     console.warn(`Scan failed: ${error}`);
   };
-
-  const itemsArray = searchQuery ? filteredItems : items;
 
   return (
     <main className="min-h-screen p-8 pb-24">
@@ -396,58 +417,99 @@ export default function Dashboard() {
           </button>
         </div>
         <div className="overflow-x-auto">
-           {/* RECIPE SUGGESTIONS */}
-           {isLoadingRecipes ? (
-              <div className="text-center">Loading recipes...</div>
-            ) : recipes.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-2xl font-bold mb-4">Recipe Suggestions</h2>
-                <div className="grid gap-6 md:grid-cols-2">
-                  {recipes.map((recipe, index) => (
+          {/* RECIPE SUGGESTIONS */}
+                 {isLoadingRecipes ? (
+                  <div className="text-center">Loading recipes...</div>
+                ) : recipes.length > 0 && (
+                  <div className="mt-8">
+                  <h2 className="text-2xl font-bold mb-4">Recipe Suggestions</h2>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {recipes.map((recipe, index) => (
                     <div key={index} className="bg-white p-6 rounded-lg shadow">
                       <h3 className="text-xl font-bold mb-3">{recipe.title}</h3>
                       <div className="mb-4">
-                        <h4 className="font-semibold mb-2">Ingredients:</h4>
-                        <ul className="list-disc pl-5">
-                          {recipe.ingredients.map((ingredient, i) => (
-                            <li key={i}>{ingredient}</li>
-                          ))}
-                        </ul>
+                      <h4 className="font-semibold mb-2">Ingredients:</h4>
+                      <ul className="list-disc pl-5">
+                        {recipe.ingredients.map((ingredient, i) => (
+                        <li key={i}>{ingredient}</li>
+                        ))}
+                      </ul>
                       </div>
                       <div className="mb-4">
-                        <h4 className="font-semibold mb-2">Instructions:</h4>
-                        <ol className="list-decimal pl-5">
-                          {recipe.instructions.map((step, i) => (
-                            <li key={i}>{step}</li>
-                          ))}
-                        </ol>
+                      <h4 className="font-semibold mb-2">Instructions:</h4>
+                      <ol className="list-decimal pl-5">
+                        {recipe.instructions.map((step, i) => (
+                        <li key={i}>{step}</li>
+                        ))}
+                      </ol>
                       </div>
                       <div className="text-green-600 font-semibold">
-                        Food waste prevented: {recipe.costSavings}
+                      Food waste prevented: {recipe.costSavings}
                       </div>
                     </div>
-                  ))}
+                    ))}
+                  </div>
+                  </div>
+                )}
+                <div className="relative my-4 flex items-center">
+                  <div className="flex-grow">
+                  <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Search items..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    style={{ maxWidth: '70vw'}}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded w-full"
+                  />
+                  </div>
+                  <div className="relative ml-2">
+                  <button
+                    onClick={() => setShowFilterOptions(!showFilterOptions)}
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    style={{ marginRight: '1em' }}
+                  >
+                    <FontAwesomeIcon icon={faFilter} />
+                    {filterType && (
+                      <span 
+                        className="absolute top-0 right-0 inline-block w-3 h-3 bg-red-500 rounded-full"
+                        style={{ transform: 'translate(-100%, -25%)' }}
+                      >
+                      </span>
+                    )}
+                  </button>
+                  {showFilterOptions && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded shadow-lg">
+                      <button
+                        onClick={() => handleFilter('threeDays')}
+                        className={`block w-full px-4 py-2 text-left hover:bg-gray-100 ${filterType === 'threeDays' ? 'bg-gray-200' : ''}`}
+                      >
+                        Expiring in 3 Days
+                      </button>
+                      <button
+                        onClick={() => handleFilter('week')}
+                        className={`block w-full px-4 py-2 text-left hover:bg-gray-100 ${filterType === 'week' ? 'bg-gray-200' : ''}`}
+                      >
+                        Expiring in a Week
+                      </button>
+                      <button
+                        onClick={clearFilter}
+                        className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                      >
+                        Clear Filter
+                      </button>
+                    </div>
+                  )}
+                  </div>
                 </div>
-              </div>
-            )}
-            <div className="relative my-4">
-              <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search items..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded"
-              />
-            </div>
-            
-          
-          <div className="min-w-full bg-white border border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-100 p-4">
-              <div className="font-bold">Item Name</div>
-            </div>
-            {/* ITEMS TABLE */}
-            {itemsArray.map((item) => (
+                
+                
+                <div className="min-w-full bg-white border border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-100 p-4">
+                  <div className="font-bold">Item Name</div>
+                </div>
+                {/* ITEMS TABLE */}
+            {filteredItems.map((item) => (
               <div
                 key={item.item}
                 className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border-b cursor-pointer"
