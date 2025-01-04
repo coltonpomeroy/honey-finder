@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ButtonAccount from "@/components/ButtonAccount";
+import ButtonSupport from "@/components/ButtonSupport";
 import Modal from "@/components/Modal";
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import Fuse from 'fuse.js';
@@ -400,6 +401,7 @@ export default function Dashboard() {
     <main className="min-h-screen p-8 pb-24">
       <section className="max-w-6xl mx-auto space-y-8">
         <ButtonAccount />
+        <ButtonSupport />
         <h1 className="text-3xl md:text-4xl font-extrabold">Dashboard</h1>
         {message && <p className="text-red-500">{message}</p>}
         <div className="flex gap-4"> {/* Changed from space-x-4 to gap-4 for better spacing */}
