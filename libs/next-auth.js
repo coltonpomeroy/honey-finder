@@ -83,6 +83,8 @@ export const authOptions = {
       const maxRetries = 3;
       let retryCount = 0;
 
+      console.log("SIGN IN USER", user);
+
       if (mongoose.connection.readyState !== 1) {
         await mongoose.connect(process.env.MONGODB_URI);
       }
