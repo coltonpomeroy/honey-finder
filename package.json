@@ -23,6 +23,7 @@
     "eslint-config-next": "13.4.19",
     "form-data": "^4.0.0",
     "fuse.js": "^7.0.0",
+    "googleapis": "^144.0.0",
     "html5-qrcode": "^2.3.8",
     "mailgun.js": "^9.4.1",
     "mongodb": "^5.9.2",
