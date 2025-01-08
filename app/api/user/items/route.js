@@ -16,6 +16,8 @@ export async function GET(req) {
     token = authHeader.substring(7, authHeader.length);
   }
 
+  console.log({ tokenFromHeader: token });
+
   // Validate the token
   const decodedToken = await getToken({ req, token, secret });
 
