@@ -11,6 +11,7 @@ export async function GET(req) {
 
   // Extract the token from the Authorization header
   const authHeader = req.headers.get('Authorization');
+  console.log({ authHeader });
   let token;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     token = authHeader.substring(7, authHeader.length);
