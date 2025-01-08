@@ -8,14 +8,28 @@ const secret = process.env.NEXTAUTH_SECRET;
 
 export async function GET(req) {
   await connectMongo();
-  const token = process.env.NODE_ENV === 'development' ? 
-    await getToken({ req, secret })
-    : await getToken({ req, secret, secureCookie: true });
-  if (!token) {
+
+  // Extract the token from the Authorization header
+  const authHeader = req.headers.get('Authorization');
+  let token;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7, authHeader.length);
+  }
+
+  // Validate the token
+  const decodedToken = await getToken({ req, token, secret });
+
+  console.log("Received token:", decodedToken);
+
+  if (!decodedToken) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const user = await User.findOne({ email: token.email });
+
+  const user = await User.findOne({ email: decodedToken.email });
+
+  console.log({ user })
+
   if (!user) {
     return NextResponse.json({ message: 'User not found' }, { status: 404 });
   }
