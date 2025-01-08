@@ -9,8 +9,10 @@ const secret = process.env.NEXTAUTH_SECRET;
 export async function GET(req) {
   await connectMongo();
 
+  console.log({headers: req.headers});
+
   // Extract the token from the Authorization header
-  const authHeader = req.headers.get('Authorization');
+  const authHeader = req.headers['authorization']; 
   console.log({ authHeader });
   let token;
   if (authHeader && authHeader.startsWith('Bearer ')) {
