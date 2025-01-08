@@ -4,13 +4,5 @@
         "path": "/api/sendDailyExpiringItemsEmail",
         "schedule": "0 0 * * *"
       }
-    ],
-    "headers": [
-      {
-        "source": "/api/(.*)",
-        "headers": [
-          
-        ]
-      }
     ]
   }
