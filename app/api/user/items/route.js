@@ -3,6 +3,7 @@ import User from '@/models/User';
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import connectMongo from '@/libs/mongoose';
+import jwt from 'jsonwebtoken';
 
 const secret = process.env.NEXTAUTH_SECRET;
 
@@ -22,7 +23,7 @@ export async function GET(req) {
   console.log({ tokenFromHeader: token });
 
   // Validate the token
-  const decodedToken = authHeader ? await getToken({ req, secret, raw: true }) : await getToken({ req, token, secret })
+  const decodedToken = authHeader ? jwt.verify(token, secret) : await getToken({ req, token, secret })
 
   console.log("Received token:", decodedToken);
 
