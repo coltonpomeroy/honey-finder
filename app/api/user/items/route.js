@@ -12,7 +12,7 @@ export async function GET(req) {
   console.log({headers: req.headers});
 
   // Extract the token from the Authorization header
-  const authHeader = req.headers['authorization']; 
+  const authHeader = req.headers['x_authorization']; 
   console.log({ authHeader });
   let token;
   if (authHeader && authHeader.startsWith('Bearer ')) {
