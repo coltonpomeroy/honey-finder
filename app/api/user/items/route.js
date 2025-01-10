@@ -12,7 +12,7 @@ export async function GET(req) {
   console.log({headers: req.headers});
 
   // Extract the token from the Authorization header
-  const authHeader = req.headers.get('x_authorization');
+  const authHeader = req.headers['x_authorization']; 
   console.log({ authHeader });
   let token;
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -22,7 +22,7 @@ export async function GET(req) {
   console.log({ tokenFromHeader: token });
 
   // Validate the token
-  const decodedToken = await getToken({ req, token, secret });
+  const decodedToken = authHeader ? await getToken({ req, secret, raw: true }) : await getToken({ req, token, secret })
 
   console.log("Received token:", decodedToken);
 
