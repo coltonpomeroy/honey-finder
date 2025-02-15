@@ -3,6 +3,7 @@ import User from '@/models/User';
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import connectMongo from '@/libs/mongoose';
+import jwt from 'jsonwebtoken';
 
 const secret = process.env.NEXTAUTH_SECRET;
 
@@ -54,11 +55,19 @@ export async function PATCH(req, { params }) {
 
 export async function DELETE(req, { params }) {
   await connectMongo();
-  const token = process.env.NODE_ENV === 'development' ? 
-    await getToken({ req, secret })
-    : await getToken({ req, secret, secureCookie: true });
-    
-  if (!token) {
+  const authHeader = req.headers.get('x_authorization');
+  console.log({ authHeader });
+  let token;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7, authHeader.length);
+  }
+
+  console.log({ tokenFromHeader: token });
+
+  // Validate the token
+  const decodedToken = authHeader ? jwt.verify(token, secret) : await getToken({ req, token, secret })
+
+  if (!decodedToken) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 

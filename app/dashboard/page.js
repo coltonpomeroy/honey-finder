@@ -365,7 +365,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchProductDetails = async () => {
-      if (scannedBarcode.length > 0) { // Fixed condition
+      if (scannedBarcode.length > 0) {
         setMessage('');
         try {
           const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${scannedBarcode}.json`);
