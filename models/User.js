@@ -30,6 +30,9 @@ const userSchema = new mongoose.Schema(
     image: {
       type: String,
     },
+    expoPushToken:{
+      type: String,
+    },
     customerId: {
       type: String,
       validate(value) {
