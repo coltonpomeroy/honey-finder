@@ -29,6 +29,8 @@ export async function PATCH(req, { params }) {
     return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
   }
 
+  console.log({ token })
+
   try {
     const user = await User.findOne({ email: token.email });
     if (!user) {
