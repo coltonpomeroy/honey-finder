@@ -49,7 +49,14 @@ export async function PATCH(req, { params }) {
 
     if (name !== undefined) item.name = name;
     if (quantity !== undefined) item.quantity = quantity;
-    if (expirationDate !== undefined) item.expirationDate = expirationDate;
+    if (expirationDate !== undefined) {
+      const date = new Date(expirationDate);
+      if (!isNaN(date.getTime())) {
+        item.expirationDate = date.toISOString().split('T')[0]; // Ensure the date is in YYYY-MM-DD format
+      } else {
+        return NextResponse.json({ message: 'Invalid date format' }, { status: 400 });
+      }
+    }
     if (image !== undefined) item.image = image;
 
     await user.save();
