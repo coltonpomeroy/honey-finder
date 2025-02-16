@@ -29,10 +29,10 @@ export async function PATCH(req, { params }) {
     return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
   }
 
-  console.log({ token })
+  console.log({ decodedToken })
 
   try {
-    const user = await User.findOne({ email: token.email });
+    const user = await User.findOne({ email: decodedToken.email });
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
