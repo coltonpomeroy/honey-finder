@@ -52,7 +52,7 @@ export async function PATCH(req, { params }) {
     if (expirationDate !== undefined) {
       const date = new Date(expirationDate);
       if (!isNaN(date.getTime())) {
-        item.expirationDate = date.toISOString().split('T')[0]; // Ensure the date is in YYYY-MM-DD format
+        item.expirationDate = date; // Ensure the date is a Date object
       } else {
         return NextResponse.json({ message: 'Invalid date format' }, { status: 400 });
       }
