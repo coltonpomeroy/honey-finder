@@ -80,7 +80,7 @@ export async function DELETE(req, { params }) {
   }
 
   try {
-    const user = await User.findOne({ email: token.email });
+    const user = await User.findOne({ email: decodedToken.email });
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
